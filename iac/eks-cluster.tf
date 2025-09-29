@@ -15,8 +15,8 @@ module "eks" {
       instance_types                 = ["t3.small"]
       #additional_security_group_ids = [aws_security_group.worker_group_mgmt_one.id]
       desired_size = 3
-      min_size = 1
-      max_size = 3
+      min_size = 3
+      max_size = 5
     }
   }
 }
@@ -29,6 +29,7 @@ data "aws_eks_cluster" "cluster" {
 data "aws_eks_cluster_auth" "cluster" {
   name = local.cluster_name
 }*/
+
 
 
 #https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/examples/eks-managed-node-group/eks-al2023.tfv
