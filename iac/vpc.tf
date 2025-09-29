@@ -1,0 +1,32 @@
+//module: coleccion de recursos
+module "vpc_back_1_us_east_2" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "6.3.0"
+
+  name                 = "vpc_back_1_us_east_2"
+  cidr                 = "10.1.0.0/16"
+  //ditribuir subredes
+  azs                  = data.aws_availability_zones.available.names
+  private_subnets      = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
+  public_subnets       = ["10.1.4.0/24", "10.1.5.0/24", "10.1.6.0/24"]
+  //para acceder a los nodos de eks en las subredes privadas
+  enable_nat_gateway   = true
+  //una sola nat gateway
+  single_nat_gateway   = true
+  ////cambiar a api????
+  enable_dns_hostnames = true
+
+  tags = {
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+  }
+
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                      = "1"
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"             = "1"
+  }
+}
