@@ -1,0 +1,123 @@
+---
+- name: Despliegue Consolidado de Microservicios (Venta, Tiempo, Intranet)
+  #ansible-playbook deploy_all_microservices.yml
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Aplicar Deployment y Service para los 3 Microservicios
+      kubernetes.core.k8s:
+        state: present # Asegura que los recursos existan y se mantengan actualizados
+        # El bloque 'definition' acepta todo el YAML consolidado
+        definition: |
+          # ====================================================================
+          # 1. SERVICIO: VENTA-API (Logica de Negocio Principal)
+          # ====================================================================
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: venta-api
+            labels:
+              app: venta-api
+          spec:
+            # 3 Réplicas para HA en las 3 AZs
+            replicas: 3 
+            selector:
+              matchLabels:
+                app: venta-api
+            template:
+              metadata:
+                labels:
+                  app: venta-api
+              spec:
+                containers:
+                - name: venta-container
+                  image: tu-registro/venta-api:latest # 👈 REEMPLAZAR
+                  ports:
+                  - containerPort: 8080
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: venta-api
+          spec:
+            type: ClusterIP
+            selector:
+              app: venta-api
+            ports:
+            - port: 80
+              targetPort: 8080 
+          ---
+          # ====================================================================
+          # 2. SERVICIO: TIEMPO-API (Soporte Común)
+          # ====================================================================
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: tiempo-api
+            labels:
+              app: tiempo-api
+          spec:
+            replicas: 3 # 3 Réplicas para HA en las 3 AZs
+            selector:
+              matchLabels:
+                app: tiempo-api
+            template:
+              metadata:
+                labels:
+                  app: tiempo-api
+              spec:
+                containers:
+                - name: tiempo-container
+                  image: tu-registro/tiempo-api:latest # 👈 REEMPLAZAR
+                  ports:
+                  - containerPort: 8000
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: tiempo-api
+          spec:
+            type: ClusterIP
+            selector:
+              app: tiempo-api
+            ports:
+            - port: 80
+              targetPort: 8000 
+          ---
+          # ====================================================================
+          # 3. SERVICIO: INTRANET (Recurso Interno)
+          # ====================================================================
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: intranet-api
+            labels:
+              app: intranet-api
+          spec:
+            replicas: 3 # 3 Réplicas para HA en las 3 AZs
+            selector:
+              matchLabels:
+                app: intranet-api
+            template:
+              metadata:
+                labels:
+                  app: intranet-api
+              spec:
+                containers:
+                - name: intranet-container
+                  image: tu-registro/intranet-api:latest # 👈 REEMPLAZAR
+                  ports:
+                  - containerPort: 9000
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: intranet-api
+          spec:
+            type: ClusterIP
+            selector:
+              app: intranet-api
+            ports:
+            - port: 80
+              targetPort: 9000

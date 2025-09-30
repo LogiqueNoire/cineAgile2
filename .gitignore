@@ -1,5 +1,4 @@
 /.idea/
-/target/
 /iac/.terraform
 iac/.terraform.lock.hcl
 iac/.terraform.tfstate.lock.info
@@ -7,4 +6,6 @@ iac/security-groups.tf
 iac/terraform.tfstate
 iac/terraform.tfstate.backup
 jenkins-cli.jar
-terraform.tfstate
+backend/target
+.env
+.env.secrets
