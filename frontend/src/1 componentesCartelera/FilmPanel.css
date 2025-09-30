@@ -1,0 +1,113 @@
+.film-panel {
+    min-height: 900px;
+
+    padding: 2rem;
+
+    box-sizing: border-box;
+}
+
+.peli-cuerpo {
+    background-color: rgb(229, 229, 229);
+    padding: 1rem;
+    box-sizing: border-box;
+    height: inherit;
+}
+
+.activetab,
+.inactivetab {
+    display: inline-block;
+    position: relative;
+    font-weight: 600;
+    color: #01217B;
+    text-decoration: none;
+}
+
+.activetab::before {
+    content: "";
+    position: absolute;
+    height: 6px;
+    width: 70%;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(to right, #01217B 10%, #023B99 50%);
+    transform: scaleX(1);
+    transform-origin: left;
+    transition: transform 0.8s;
+}
+
+.activetab::after {
+    display: none;
+}
+
+.inactivetab::after {
+    content: "";
+    position: absolute;
+    height: 6px;
+    width: 70%;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(to right, #01217B 10%, #023B99 50%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.8s;
+}
+
+.inactivetab:hover::after {
+    transform: scaleX(1);
+}
+
+/*
+
+.activetab:hover::after {
+   transform: scaleX(0);
+}*/
+
+a.tab,
+a.tab:link,
+a.tab:visited,
+a.tab:focus,
+a.tab:hover,
+a.tab:active {
+    text-decoration: none;
+    text-emphasis: none;
+    color: #01217B;
+}
+
+@media (max-width: 600px) {
+
+    .film-panel {
+        margin: 0rem;
+        padding: 1rem;
+    }
+
+    .contenedor.container-fluid {
+        margin: 0rem;
+        padding: 0rem;
+    }
+
+    .peli-cuerpo {
+        padding: 0rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .film-panel {
+        background-color: white;
+    }
+
+    .filmCard {
+        width: 40%;
+        height: auto;
+        margin-bottom: 1rem;
+    }
+
+    .filmCard>.img-film-card {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3/4;
+        object-fit: cover;
+
+
+    }
+
+}

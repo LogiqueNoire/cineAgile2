@@ -1,0 +1,14 @@
+.mytable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.addFilm{
+    justify-self: center;
+    width: 70%;
+}
+@media (max-width: 768px) {
+    .addFilm{
+        width: 100%;
+    }
+}

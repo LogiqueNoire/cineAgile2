@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build Maven') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'cd backend && mvn clean package -DskipTests'
             }
         }
 
@@ -39,6 +39,7 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 sh '''
+                    cd backend
                     docker build -t $ECR_REPO:$IMAGE_TAG .
                     docker push $ECR_REPO:$IMAGE_TAG
                 '''
@@ -51,7 +52,7 @@ pipeline {
             echo "Imagen Docker subida a ECR: $ECR_REPO:$IMAGE_TAG"
         }
         failure {
-            echo "Falló el pipeline :v"
+            echo "Falló el pipeline"
         }
     }
 }
