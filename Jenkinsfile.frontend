@@ -10,31 +10,40 @@ pipeline {
     }
 
     stages {
+        /*
         stage('Checkout Code') {
             steps {
-                // Obtiene el código del repositorio (esto se configura generalmente en la GUI de Jenkins)
+                // Obtiene el código del repositorio sin pasarle nada por jenkins
                 git branch: 'main', url: 'tu_url_de_repositorio_frontend.git'
+            }
+        }
+        */
+
+        stage('Checkout') { //Clonar repo indicado en jenkins
+            steps {
+                checkout scm
             }
         }
 
         stage('Build Frontend') {
             steps {
-                echo 'Instalando dependencias...'
-                sh 'npm install'
-                echo 'Compilando aplicación (npm run build)...'
-                // Ejecuta el comando de compilación
-                sh 'npm run build'
+                sh '''
+                    cd frontend
+                    echo "Instalando dependencias..."
+                    npm install
+                    echo "Compilando aplicación (npm run build)..."
+                    npm run build
+                '''
             }
         }
 
         stage('Deploy to S3') {
             steps {
-                echo "Sincronizando la carpeta ${env.FRONTEND_DIST} con S3: s3://${env.FRONTEND_BUCKET}"
-                // Sincroniza la carpeta compilada con el bucket S3.
-                // `--delete` elimina archivos antiguos de S3 que ya no están en la compilación.
-                sh "aws s3 sync ./${env.FRONTEND_DIST} s3://${env.FRONTEND_BUCKET} --delete --acl public-read"
+                echo "Sincronizando la carpeta ./frontend/${env.FRONTEND_DIST} con S3: s3://${env.FRONTEND_BUCKET}"
+                sh "aws s3 sync ./frontend/${env.FRONTEND_DIST} s3://${env.FRONTEND_BUCKET} --delete --acl public-read"
             }
         }
+
 
         stage('Invalidate Cache (CloudFront)') {
             steps {
