@@ -1,0 +1,56 @@
+
+pipeline {
+    agent any
+
+    environment {
+        // Debes obtener estos valores de los outputs de tu Terraform y asignarlos como variables de entorno
+        FRONTEND_BUCKET = 'tu-dominio.com' // Usar el output de Terraform (s3_frontend_bucket_name)
+        CLOUDFRONT_ID   = 'E123ABCDEFGHIJ' // Usar el output de Terraform (cloudfront_distribution_id)
+        FRONTEND_DIST   = 'dist' // O la carpeta de salida de tu build (ej. 'build')
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Obtiene el código del repositorio (esto se configura generalmente en la GUI de Jenkins)
+                git branch: 'main', url: 'tu_url_de_repositorio_frontend.git'
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                echo 'Instalando dependencias...'
+                sh 'npm install'
+                echo 'Compilando aplicación (npm run build)...'
+                // Ejecuta el comando de compilación
+                sh 'npm run build'
+            }
+        }
+
+        stage('Deploy to S3') {
+            steps {
+                echo "Sincronizando la carpeta ${env.FRONTEND_DIST} con S3: s3://${env.FRONTEND_BUCKET}"
+                // Sincroniza la carpeta compilada con el bucket S3.
+                // `--delete` elimina archivos antiguos de S3 que ya no están en la compilación.
+                sh "aws s3 sync ./${env.FRONTEND_DIST} s3://${env.FRONTEND_BUCKET} --delete --acl public-read"
+            }
+        }
+
+        stage('Invalidate Cache (CloudFront)') {
+            steps {
+                echo "Invalidando caché de CloudFront ID: ${env.CLOUDFRONT_ID}"
+                // Crea una invalidación para forzar a CloudFront a refrescar el caché.
+                sh "aws cloudfront create-invalidation --distribution-id ${env.CLOUDFRONT_ID} --paths \"/*\""
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Despliegue del Frontend completado exitosamente.'
+        }
+        failure {
+            echo '❌ Error en el despliegue del Frontend. Revisa la etapa fallida.'
+        }
+    }
+}
