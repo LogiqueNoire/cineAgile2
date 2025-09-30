@@ -1,27 +1,16 @@
 pipeline {
-    agent {
-        docker { image 'maven:3-amazoncorretto-21' }
-    }
+    agent any
 
     environment {
         IMAGE_TAG = "${BUILD_NUMBER}"
+        AWS_REGION = credentials('aws-region-id')  // solo si es string credential
+        ECR_REPO = credentials('ecr-repo-id')      // string credential para repo
     }
 
     stages {
         stage('Checkout') { //Clonar
             steps {
                 checkout scm
-            }
-        }
-
-        stage('Load Environment') { //Cargar variables de entorno
-            steps {
-                script {
-                    def props = readProperties file: '.env'
-                    props.each { k, v ->
-                        env."${k}" = v
-                    }
-                }
             }
         }
 
@@ -32,10 +21,13 @@ pipeline {
         }
 
         stage('Loguarse a AWS ECR') {
-            agent any
             steps {
-                withCredentials([usernamePassword(credentialsId: 'aws-credentials-id', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                withCredentials([
+                    usernamePassword(credentialsId: 'aws-credentials-id', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                ]) {
                     sh '''
+                        echo "REGION: $AWS_REGION"
+                        echo "REPO: $ECR_REPO"
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
@@ -44,17 +36,12 @@ pipeline {
             }
         }
 
-        stage('Build imagen Docker') {
-            agent any
+        stage('Build and Push Docker Image') {
             steps {
-                sh "docker build -t $ECR_REPO:$IMAGE_TAG ."
-            }
-        }
-
-        stage('Push imagen Docker') {
-            agent any
-            steps {
-                sh "docker push $ECR_REPO:$IMAGE_TAG"
+                sh '''
+                    docker build -t $ECR_REPO:$IMAGE_TAG .
+                    docker push $ECR_REPO:$IMAGE_TAG
+                '''
             }
         }
     }
