@@ -30,3 +30,35 @@ module "vpc_back_1_us_east_2" {
     "kubernetes.io/role/internal-elb"             = "1"
   }
 }
+
+module "vpc_back_2_us_east_1" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "6.3.0"
+
+  name                 = "vpc_back_2_us_east_1"
+  cidr                 = "10.2.0.0/16"
+  //ditribuir subredes
+  azs                  = data.aws_availability_zones.available.names
+  private_subnets      = ["10.2.1.0/24", "10.2.2.0/24", "10.2.3.0/24"]
+  public_subnets       = ["10.2.4.0/24", "10.2.5.0/24", "10.2.6.0/24"]
+
+  enable_nat_gateway   = true
+
+  single_nat_gateway   = true
+
+  enable_dns_hostnames = true
+
+  tags = {
+    "kubernetes.io/cluster/${local.cluster_name_2}" = "shared"
+  }
+
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${local.cluster_name_2}" = "shared"
+    "kubernetes.io/role/elb"                      = "1"
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/cluster/${local.cluster_name_2}" = "shared"
+    "kubernetes.io/role/internal-elb"             = "1"
+  }
+}
