@@ -3,10 +3,9 @@ pipeline {
     agent any
 
     environment {
-        // Debes obtener estos valores de los outputs de tu Terraform y asignarlos como variables de entorno
-        FRONTEND_BUCKET = 'tu-dominio.com' // Usar el output de Terraform (s3_frontend_bucket_name)
-        CLOUDFRONT_ID   = 'E123ABCDEFGHIJ' // Usar el output de Terraform (cloudfront_distribution_id)
-        FRONTEND_DIST   = 'dist' // O la carpeta de salida de tu build (ej. 'build')
+        FRONTEND_BUCKET = 'cineagile-front'
+        CLOUDFRONT_ID   = 'E3662XR7XOE9QU'
+        FRONTEND_DIST   = 'dist' // carpeta de salida de tu build (ej. 'build')
     }
 
     stages {
@@ -56,10 +55,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Despliegue del Frontend completado exitosamente.'
+            echo 'Despliegue del Frontend completado exitosamente.'
         }
         failure {
-            echo '❌ Error en el despliegue del Frontend. Revisa la etapa fallida.'
+            echo 'Error en el despliegue del Frontend. Revisa la etapa fallida.'
         }
     }
 }

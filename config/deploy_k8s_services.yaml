@@ -11,9 +11,9 @@
         # El bloque 'definition' acepta todo el YAML consolidado
         definition: |
           # ====================================================================
-          # 1. SERVICIO: VENTA-API (Logica de Negocio Principal)
+          # 1. SERVICIO: VENTA-API
           # ====================================================================
-          apiVersion: apps/v1
+          apiVersion: api/v1
           kind: Deployment
           metadata:
             name: venta-api
@@ -32,7 +32,7 @@
               spec:
                 containers:
                 - name: venta-container
-                  image: tu-registro/venta-api:latest # 👈 REEMPLAZAR
+                  797606048152.dkr.ecr.us-east-2.amazonaws.com/microservicio-intranet:30
                   ports:
                   - containerPort: 8080
           ---
@@ -49,44 +49,7 @@
               targetPort: 8080 
           ---
           # ====================================================================
-          # 2. SERVICIO: TIEMPO-API (Soporte Común)
-          # ====================================================================
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: tiempo-api
-            labels:
-              app: tiempo-api
-          spec:
-            replicas: 3 # 3 Réplicas para HA en las 3 AZs
-            selector:
-              matchLabels:
-                app: tiempo-api
-            template:
-              metadata:
-                labels:
-                  app: tiempo-api
-              spec:
-                containers:
-                - name: tiempo-container
-                  image: tu-registro/tiempo-api:latest # 👈 REEMPLAZAR
-                  ports:
-                  - containerPort: 8000
-          ---
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: tiempo-api
-          spec:
-            type: ClusterIP
-            selector:
-              app: tiempo-api
-            ports:
-            - port: 80
-              targetPort: 8000 
-          ---
-          # ====================================================================
-          # 3. SERVICIO: INTRANET (Recurso Interno)
+          # 2. SERVICIO: INTRANET
           # ====================================================================
           apiVersion: apps/v1
           kind: Deployment
@@ -106,7 +69,7 @@
               spec:
                 containers:
                 - name: intranet-container
-                  image: tu-registro/intranet-api:latest # 👈 REEMPLAZAR
+                  image: 797606048152.dkr.ecr.us-east-2.amazonaws.com/microservicio-intranet:30
                   ports:
                   - containerPort: 9000
           ---
