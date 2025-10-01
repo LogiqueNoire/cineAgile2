@@ -2,10 +2,10 @@
 pipeline {
     agent {
         docker {
-        image 'node:18-alpine'
+        image 'node:20-alpine'
         }
     }
-    
+
     environment {
         FRONTEND_BUCKET = 'cineagile-front'
         CLOUDFRONT_ID   = 'E3662XR7XOE9QU'
