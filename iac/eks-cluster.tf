@@ -8,7 +8,7 @@ module "eks_us_east_2" {
   vpc_id   = module.vpc_back_1_us_east_2.vpc_id
   subnet_ids  = module.vpc_back_1_us_east_2.private_subnets
 
-/*
+
   # Para crear los ec2 node groups
   eks_managed_node_groups = {
     "ec2" = {
@@ -18,7 +18,7 @@ module "eks_us_east_2" {
       min_size = 3
       max_size = 5
     }
-  }*/
+  }
 }
 
 module "eks_us_east_1" {
@@ -35,7 +35,7 @@ module "eks_us_east_1" {
   vpc_id   = module.vpc_back_2_us_east_1.vpc_id
   subnet_ids  = module.vpc_back_2_us_east_1.private_subnets
 
-/*
+
   # Para crear los ec2 node groups
   eks_managed_node_groups = {
     "ec2" = {
@@ -45,7 +45,7 @@ module "eks_us_east_1" {
       min_size = 3
       max_size = 5
     }
-  }*/
+  }
 }
 
 /*
