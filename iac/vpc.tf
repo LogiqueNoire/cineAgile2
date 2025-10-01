@@ -6,7 +6,7 @@ module "vpc_back_1_us_east_2" {
   name                 = "vpc_back_1_us_east_2"
   cidr                 = "10.1.0.0/16"
   //ditribuir subredes
-  azs                  = data.aws_availability_zones.available.names
+  azs                  = data.aws_availability_zones.available_use2.names
   private_subnets      = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
   public_subnets       = ["10.1.4.0/24", "10.1.5.0/24", "10.1.6.0/24"]
   //para acceder a los nodos de eks en las subredes privadas
@@ -35,10 +35,14 @@ module "vpc_back_2_us_east_1" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "6.3.0"
 
+  providers = {
+    aws = aws.use1
+  }
+
   name                 = "vpc_back_2_us_east_1"
   cidr                 = "10.2.0.0/16"
   //ditribuir subredes
-  azs                  = data.aws_availability_zones.available.names
+  azs                  = data.aws_availability_zones.available_use1.names
   private_subnets      = ["10.2.1.0/24", "10.2.2.0/24", "10.2.3.0/24"]
   public_subnets       = ["10.2.4.0/24", "10.2.5.0/24", "10.2.6.0/24"]
 
