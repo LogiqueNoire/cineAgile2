@@ -4,4 +4,4 @@ CineAgile es una cadena peruana de cines que ofrece servicios a nivel nacional. 
 
 <img width="1681" height="773" alt="Captura de pantalla 2025-09-28 224429" src="https://github.com/user-attachments/assets/6596418a-403b-41a8-ae16-349674406f7d" />
 
-Diagrama de aruqitectura propuesto
+Diagrama de arquitectura propuesto
