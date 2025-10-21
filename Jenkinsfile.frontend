@@ -1,68 +1,86 @@
-
 pipeline {
     agent {
         docker {
-        image 'node:20-alpine'
+            image 'node:20-alpine'
+            args '-u root'
         }
     }
 
     environment {
         FRONTEND_BUCKET = 'cineagile-front'
-        CLOUDFRONT_ID   = 'E3662XR7XOE9QU'
-        FRONTEND_DIST   = 'dist' // carpeta de salida de tu build (ej. 'build')
+        CLOUDFRONT_ID   = 'E1ZUAB4FU9P7WC'
+        FRONTEND_DIST   = 'dist'
+        AWS_DEFAULT_REGION = 'us-east-1' // Ajusta según tu región
     }
 
     stages {
-        /*
-        stage('Checkout Code') {
-            steps {
-                // Obtiene el código del repositorio sin pasarle nada por jenkins
-                git branch: 'main', url: 'tu_url_de_repositorio_frontend.git'
-            }
-        }
-        */
 
-        stage('Checkout') { //Clonar repo indicado en jenkins
+        stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
         stage('Build Frontend') {
+            environment {
+                NPM_CONFIG_CACHE = "${WORKSPACE}/frontend/.npm-cache"
+            }
             steps {
-                sh '''
-                    cd frontend
-                    echo "Instalando dependencias..."
-                    npm install
-                    echo "Compilando aplicación (npm run build)..."
-                    npm run build
-                '''
+                dir('frontend') {
+                    sh '''
+                        mkdir -p $NPM_CONFIG_CACHE
+                        chmod -R 777 $NPM_CONFIG_CACHE
+                        npm ci
+                        npm run build
+                    '''
+                }
             }
         }
 
         stage('Deploy to S3') {
             steps {
-                echo "Sincronizando la carpeta ./frontend/${env.FRONTEND_DIST} con S3: s3://${env.FRONTEND_BUCKET}"
-                sh "aws s3 sync ./frontend/${env.FRONTEND_DIST} s3://${env.FRONTEND_BUCKET} --delete --acl public-read"
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-credentials-id',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    echo "Instalando AWS CLI dentro del contenedor..."
+                    sh '''
+                        apk add --no-cache python3 py3-pip
+                        pip install --break-system-packages awscli
+                        aws --version
+                        aws s3 sync ./frontend/${FRONTEND_DIST} s3://${FRONTEND_BUCKET} --delete
+                    '''
+                }
             }
         }
 
-
         stage('Invalidate Cache (CloudFront)') {
             steps {
-                echo "Invalidando caché de CloudFront ID: ${env.CLOUDFRONT_ID}"
-                // Crea una invalidación para forzar a CloudFront a refrescar el caché.
-                sh "aws cloudfront create-invalidation --distribution-id ${env.CLOUDFRONT_ID} --paths \"/*\""
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-credentials-id',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    echo "Invalidando caché de CloudFront ID: ${env.CLOUDFRONT_ID}"
+                    sh '''
+                        aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Despliegue del Frontend completado exitosamente.'
+            echo '✅ Despliegue del Frontend completado exitosamente.'
         }
         failure {
-            echo 'Error en el despliegue del Frontend. Revisa la etapa fallida.'
+            echo '❌ Error en el despliegue del Frontend. Revisa la etapa fallida.'
         }
     }
 }
