@@ -77,10 +77,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Despliegue del Frontend completado exitosamente.'
+            echo 'Despliegue del Frontend completado exitosamente.'
         }
         failure {
-            echo '❌ Error en el despliegue del Frontend. Revisa la etapa fallida.'
+            echo 'Error en el despliegue del Frontend. Revisa la etapa fallida.'
         }
     }
 }
