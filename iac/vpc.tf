@@ -1,7 +1,10 @@
 //module: coleccion de recursos
 module "vpc_back_1_us_east_2" {
+  //source          = "https://github.com/terraform-aws-modules/terraform-aws-eks?ref=9b72a9a"
+  //solucionado CKV_TF_1
   source  = "terraform-aws-modules/vpc/aws"
   version = "6.3.0"
+  //https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
 
   name                 = "vpc_back_1_us_east_2"
   cidr                 = "10.1.0.0/16"
@@ -32,6 +35,8 @@ module "vpc_back_1_us_east_2" {
 }
 
 module "vpc_back_2_us_east_1" {
+  //source          = "https://github.com/terraform-aws-modules/terraform-aws-eks?ref=9b72a9a"
+  //solucionado CKV_TF_1
   source  = "terraform-aws-modules/vpc/aws"
   version = "6.3.0"
 
