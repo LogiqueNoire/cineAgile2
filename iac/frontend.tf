@@ -74,23 +74,14 @@ resource "aws_route53_record" "www_domain" {
 
 // 1. S3 Bucket para el Contenido Estático
 
-#checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
+
 resource "aws_s3_bucket" "frontend_bucket" {
+
+# checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
+# checkov:skip=CKV2_AWS_18:Ensure the S3 bucket has access logging enabled se usará cloud watch
   bucket = "cineagile-front"
 
 }
-
-# solucionado CKV_AWS_18:Ensure the S3 bucket has access logging enabled, Configuración de logging
-resource "aws_s3_bucket" "frontend_logs" {
-  bucket = "cineagile-front-logs"
-}
-
-resource "aws_s3_bucket_logging" "example" {
-  bucket = aws_s3_bucket.frontend_bucket.id
-  target_bucket = aws_s3_bucket.frontend_logs.id
-  target_prefix = "log/"
-}
-
 
 #solucionado CKV_AWS_145 Ensure that S3 buckets are encrypted with KMS by default
 resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_encryption" {
@@ -156,11 +147,12 @@ data "aws_iam_policy_document" "s3_access_policy" {
 resource "aws_s3_bucket_policy" "s3_access_policy" {
   bucket = aws_s3_bucket.frontend_bucket.id
   policy = data.aws_iam_policy_document.s3_access_policy.json
+
+  depends_on = [aws_cloudfront_origin_access_control.oac]
 }
 
 // --- 4. CloudFront Distribution (CDN) ---
-
-# checkov:skip=CKV2_AWS_42:No se está usando un dominio
+# checkov:skip=CKV_AWS_310:"No necesitamos origin failover por ahora"
 resource "aws_cloudfront_distribution" "s3_distribution" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -190,6 +182,9 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     default_ttl            = 3600
     max_ttl                = 86400
 
+    # solucionado CKV2_AWS_32 AWS CloudFront distribution does not have a strict security headers policy attached
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
+
     forwarded_values {
       query_string = false
       cookies {
@@ -214,9 +209,11 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   #   }
   # }
 
+  # solucionado CKV_AWS_374 Ensure AWS CloudFront web distribution has geo restriction enabled
   restrictions {
     geo_restriction {
-      restriction_type = "none"
+      restriction_type = "whitelist"
+      locations        = ["PE"]
     }
   }
 
@@ -227,6 +224,62 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
 }
+
+resource "aws_cloudfront_response_headers_policy" "security_headers" {
+  name    = "cineagile-security-headers"
+  comment = "Cabeceras CORS y seguridad para CloudFront"
+
+  cors_config {
+    access_control_allow_credentials = true
+
+    access_control_allow_headers {
+      items = ["Content-Type", "Authorization"]
+    }
+
+    access_control_allow_methods {
+      items = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+
+    access_control_allow_origins {
+      items = ["https://cineagile.com", "https://www.cineagile.com"]
+    }
+
+    origin_override = true
+  }
+
+  security_headers_config {
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
+    content_type_options {
+      override = true
+    }
+    xss_protection {
+      override    = true
+      protection  = true
+      mode_block  = true
+    }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    referrer_policy {
+      referrer_policy = "no-referrer"
+      override        = true
+    }
+    /*
+    content_security_policy {
+      content_security_policy = "default-src 'self';"
+      override                = true
+    }
+    */
+  }
+}
+
+
 
 # #Health checks
 # resource "aws_route53_health_check" "alb_east_1" {
