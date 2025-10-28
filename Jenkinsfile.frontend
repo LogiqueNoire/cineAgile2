@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         FRONTEND_BUCKET = 'cineagile-front'
-        CLOUDFRONT_ID   = 'E1ZUAB4FU9P7WC'
+        CLOUDFRONT_ID   = 'E2X8AWNAQTG3LI'
         FRONTEND_DIST   = 'dist'
         AWS_DEFAULT_REGION = 'us-east-1' // Ajusta según tu región
     }
@@ -18,6 +18,17 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Init Submodules') {
+            steps {
+                sh '''
+                    apk add --no-cache git
+                    git config --global --add safe.directory $WORKSPACE
+                    rm -rf frontend
+                    git submodule update --init --recursive
+                '''
             }
         }
 
@@ -51,7 +62,7 @@ pipeline {
                         apk add --no-cache python3 py3-pip
                         pip install --break-system-packages awscli
                         aws --version
-                        aws s3 sync ./frontend/${FRONTEND_DIST} s3://${FRONTEND_BUCKET} --delete
+                        aws s3 sync ./frontend/${FRONTEND_DIST} s3://${FRONTEND_BUCKET} --delete --exact-timestamps
                     '''
                 }
             }
