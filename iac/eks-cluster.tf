@@ -1,8 +1,8 @@
 module "eks_us_east_2" {
-  //source          = "https://github.com/terraform-aws-modules/terraform-aws-eks?ref=de2aa10"
-  //solucionado CKV_TF_1
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "21.3.1"
+  source          = "github.com/terraform-aws-modules/terraform-aws-eks?ref=de2aa10"
+  # solucionado CKV_TF_1
+  # source          = "terraform-aws-modules/eks/aws"
+  # version         = "21.3.1"
   //https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest
 
   name    = local.cluster_name
@@ -25,10 +25,10 @@ module "eks_us_east_2" {
 }
 
 module "eks_us_east_1" {
-  //source          = "https://github.com/terraform-aws-modules/terraform-aws-eks?ref=de2aa10"
-  //solucionado CKV_TF_1
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "21.3.1"
+  source          = "github.com/terraform-aws-modules/terraform-aws-eks?ref=de2aa10"
+  # solucionado CKV_TF_1
+  # source          = "terraform-aws-modules/eks/aws"
+  # version         = "21.3.1"
 
   name    = local.cluster_name_2
   kubernetes_version = "1.31"

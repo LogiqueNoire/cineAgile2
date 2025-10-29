@@ -27,3 +27,13 @@ output "cloudfront_domain_name" {
   description = "Dominio público de la distribución CloudFront."
   value       = aws_cloudfront_distribution.s3_distribution.domain_name
 }
+
+output "cloudfront_distribution_arn" {
+  description = "ARN de la distribución de CloudFront"
+  value       = aws_cloudfront_distribution.s3_distribution.arn
+}
+
+output "s3_bucket_arn" {
+  description = "ARN del bucket S3 usado como origen"
+  value       = aws_s3_bucket.frontend_bucket.arn
+}
