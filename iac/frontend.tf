@@ -151,6 +151,37 @@ resource "aws_s3_bucket_policy" "s3_access_policy" {
   depends_on = [aws_cloudfront_origin_access_control.oac]
 }
 
+resource "aws_kms_key" "s3_key" {
+  description = "KMS key for S3 bucket encryption"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowCloudFrontUse"
+        Effect    = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = ["kms:Decrypt", "kms:DescribeKey"]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = "arn:aws:cloudfront::797606048152:distribution/E2DMEHPEKTRNX9"
+          }
+        }
+      },
+      {
+        Sid       = "AllowRootAccountFullAccess"
+        Effect    = "Allow"
+        Principal = { AWS = "arn:aws:iam::797606048152:root" }
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 // --- 4. CloudFront Distribution (CDN) ---
 # checkov:skip=CKV_AWS_310:"No necesitamos origin failover por ahora"
 resource "aws_cloudfront_distribution" "s3_distribution" {
