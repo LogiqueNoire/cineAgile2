@@ -9,3 +9,5 @@ jenkins-cli.jar
 backend/target
 .env
 .env.secrets
+/iac/iac/
+/iac/results.xml
