@@ -79,7 +79,7 @@ resource "aws_s3_bucket" "frontend_bucket" {
 
 # checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
 # checkov:skip=CKV2_AWS_18:Ensure the S3 bucket has access logging enabled se usará cloud watch
-  bucket = "cineagile-front"
+  bucket = "cineagile-front3"
 
 }
 

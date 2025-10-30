@@ -6,9 +6,12 @@ pipeline {
         }
     }
 
+    parameters {
+        string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
+        string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
+    }
+
     environment {
-        FRONTEND_BUCKET = 'cineagile-front'
-        CLOUDFRONT_ID   = 'E2X8AWNAQTG3LI'
         FRONTEND_DIST   = 'dist'
         AWS_DEFAULT_REGION = 'us-east-1' // Ajusta según tu región
     }
