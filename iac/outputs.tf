@@ -37,3 +37,15 @@ output "s3_bucket_arn" {
   description = "ARN del bucket S3 usado como origen"
   value       = aws_s3_bucket.frontend_bucket.arn
 }
+
+output "ecr_repo_intranet_url" {
+  value = aws_ecr_repository.intranet.repository_url
+}
+
+output "ecr_repo_venta_url" {
+  value = aws_ecr_repository.venta.repository_url
+}
+
+output "ecr_repo_tiempo_url" {
+  value = aws_ecr_repository.tiempo.repository_url
+}
