@@ -84,6 +84,7 @@ resource "aws_s3_bucket" "frontend_bucket" {
 }
 
 #solucionado CKV_AWS_145 Ensure that S3 buckets are encrypted with KMS by default
+/*
 resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_encryption" {
   bucket = aws_s3_bucket.frontend_bucket.id
 
@@ -93,7 +94,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_encrypti
     }
   }
 }
-
+*/
 
 resource "aws_s3_bucket_website_configuration" "website_config" {
   bucket = aws_s3_bucket.frontend_bucket.id
