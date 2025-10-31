@@ -204,6 +204,17 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
 
+  origin {
+    origin_id   = "api-origin"
+    domain_name = "api.cineagile.com"
+    custom_origin_config {
+      origin_protocol_policy = "https-only"
+      http_port              = 80
+      https_port             = 443
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
   # Comportamiento por defecto: sirve S3
   default_cache_behavior {
     target_origin_id       = aws_s3_bucket.frontend_bucket.id
@@ -225,21 +236,22 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     }
   }
 
-  # Comportamiento para API (rutas que van a ALB)
-  # ordered_cache_behavior {
-  #   path_pattern           = "/api/*"
-  #   target_origin_id       = "alb-backend"
-  #   viewer_protocol_policy = "redirect-to-https"
-  #   allowed_methods        = ["GET", "HEAD", "POST", "PUT", "DELETE"]
-  #   cached_methods         = ["GET", "HEAD"]
+  # Comportamiento para API (rutas que van a ALB)  
+  ordered_cache_behavior {
+    path_pattern           = "/api/*"
+    target_origin_id       = "alb-backend"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD", "POST", "PUT", "DELETE"]
+    cached_methods         = ["GET", "HEAD"]
 
-  #   forwarded_values {
-  #     query_string = true
-  #     cookies {
-  #       forward = "all"
-  #     }
-  #   }
-  # }
+    forwarded_values {
+      query_string = true
+      headers      = ["Authorization", "Content-Type"]
+      cookies {
+        forward = "all"
+      }
+    }
+  }
 
   # solucionado CKV_AWS_374 Ensure AWS CloudFront web distribution has geo restriction enabled
   restrictions {
@@ -310,24 +322,3 @@ resource "aws_cloudfront_response_headers_policy" "security_headers" {
     */
   }
 }
-
-
-
-# #Health checks
-# resource "aws_route53_health_check" "alb_east_1" {
-#   fqdn              = aws_lb.alb_east_1.dns_name
-#   port              = 80
-#   type              = "HTTP"
-#   resource_path     = "/health"
-#   failure_threshold = 3
-#   request_interval  = 30
-# }
-
-# resource "aws_route53_health_check" "alb_east_2" {
-#   fqdn              = aws_lb.alb_east_2.dns_name
-#   port              = 80
-#   type              = "HTTP"
-#   resource_path     = "/health"
-#   failure_threshold = 3
-#   request_interval  = 30
-# }
