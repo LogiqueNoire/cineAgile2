@@ -1,1 +1,5 @@
 region  =   "us-east-2"
+bucket_nombre  =   "cineagilefront"
+dominio_nombre = "cineagile.com"
+sub_dominio_www = "www.cineagile.com"
+sub_dominio_api = "api.cineagile.com"

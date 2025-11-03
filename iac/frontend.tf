@@ -1,15 +1,15 @@
 // 0. Zona route 53
 resource "aws_route53_zone" "main" {
-  name = "cineagile.com"
+  name = var.dominio_nombre
 }
 
 # Certificado SSL para CloudFront
 resource "aws_acm_certificate" "cineagile_cert" {
   provider          = aws.use1
-  domain_name       = "cineagile.com"
+  domain_name       = var.dominio_nombre
   validation_method = "DNS"
 
-  subject_alternative_names = ["www.cineagile.com"]
+  subject_alternative_names = [var.sub_dominio_www]
 
   lifecycle {
     create_before_destroy = true
@@ -45,7 +45,7 @@ resource "aws_acm_certificate_validation" "cineagile_cert_validation" {
 # Ruta raiz
 resource "aws_route53_record" "root_domain" {
   zone_id = aws_route53_zone.main.zone_id
-  name    = "cineagile.com"
+  name    = var.dominio_nombre
   type    = "A"
 
   alias {
@@ -60,7 +60,7 @@ resource "aws_route53_record" "root_domain" {
 # Subdominio
 resource "aws_route53_record" "www_domain" {
   zone_id = aws_route53_zone.main.zone_id
-  name    = "www.cineagile.com"
+  name    = var.sub_dominio_www
   type    = "A"
 
   alias {
@@ -79,7 +79,7 @@ resource "aws_s3_bucket" "frontend_bucket" {
 
 # checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
 # checkov:skip=CKV2_AWS_18:Ensure the S3 bucket has access logging enabled se usará cloud watch
-  bucket = "cineagile-front3"
+  bucket = var.bucket_nombre
 
 }
 
@@ -193,8 +193,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   depends_on = [aws_acm_certificate_validation.cineagile_cert_validation]
 
   aliases = [
-    "cineagile.com",
-    "www.cineagile.com"
+    var.dominio_nombre,
+    var.sub_dominio_www
   ]
 
   # --- ORIGIN 1: S3 ---
@@ -206,7 +206,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   origin {
     origin_id   = "api-origin"
-    domain_name = "api.cineagile.com"
+    domain_name = var.sub_dominio_api
     custom_origin_config {
       origin_protocol_policy = "https-only"
       http_port              = 80
