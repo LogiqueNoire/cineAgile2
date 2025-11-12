@@ -1,4 +1,5 @@
 region  =   "us-east-2"
+region_secondary = "us-east-1"
 bucket_nombre  =   "cineagilefront"
 dominio_nombre = "cineagile.com"
 sub_dominio_www = "www.cineagile.com"

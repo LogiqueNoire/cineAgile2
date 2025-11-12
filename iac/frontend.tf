@@ -200,7 +200,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   # --- ORIGIN 1: S3 ---
   origin {
     domain_name              = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
-    origin_id                = aws_s3_bucket.frontend_bucket.id
+    origin_id                = "s3-frontend-origin" //debe ser una cadena
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
 
@@ -217,7 +217,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   # Comportamiento por defecto: sirve S3
   default_cache_behavior {
-    target_origin_id       = aws_s3_bucket.frontend_bucket.id
+    target_origin_id       = "s3-frontend-origin"
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
     viewer_protocol_policy = "redirect-to-https"
@@ -239,9 +239,9 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   # Comportamiento para API (rutas que van a ALB)  
   ordered_cache_behavior {
     path_pattern           = "/api/*"
-    target_origin_id       = "alb-backend"
+    target_origin_id       = "api-origin"
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD", "POST", "PUT", "DELETE"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods         = ["GET", "HEAD"]
 
     forwarded_values {

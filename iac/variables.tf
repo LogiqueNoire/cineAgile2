@@ -3,6 +3,11 @@ variable "region" {
     description = "Region of AWS"
 }
 
+variable "region_secondary" {
+  type = string
+  description = "Region of AWS"
+}
+
 variable "bucket_nombre" {
     type = string
     description = "Region of AWS"
@@ -18,10 +23,5 @@ variable "sub_dominio_www" {
 }
 
 variable "sub_dominio_api" {
-  type        = string
-}
-
-variable "route53_zone_id" {
-  description = "El ID de la Hosted Zone de Route 53 para tu dominio."
   type        = string
 }
