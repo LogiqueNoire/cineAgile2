@@ -4,6 +4,16 @@ ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
 
 USER root
 
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    iputils-ping \
+    dnsutils \
+    ca-certificates \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 

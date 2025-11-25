@@ -7,6 +7,10 @@ jenkins:
         - id: admin
           password: admin
 
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
   nodes:
     # Agente Docker
     - permanent:
