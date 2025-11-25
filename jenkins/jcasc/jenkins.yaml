@@ -8,10 +8,9 @@ jenkins:
           password: admin
 
   nodes:
-    # Agente Docker 
+    # Agente Docker
     - permanent:
         name: "docker-agent"
-        image: "jenkins/inbound-agent:latest"
         labelString: "docker"
         mode: NORMAL
         remoteFS: "/home/jenkins"
@@ -27,7 +26,6 @@ jenkins:
     # Agente Node.js
     - permanent:
         name: "node-agent"
-        image: "node:18-alpine"
         labelString: "node"
         mode: NORMAL
         remoteFS: "/home/jenkins"
@@ -40,10 +38,9 @@ jenkins:
               internalDir: "remoting"
               workDirPath: "/tmp"
 
-    # Agente GIT Y AWS CLI
+    # Agente GIT AWS CLI
     - permanent:
         name: "git-awscli-agent"
-        image: "git-awscli-agent:latest"
         labelString: "git-awscli"
         mode: NORMAL
         remoteFS: "/home/jenkins"
@@ -55,3 +52,5 @@ jenkins:
               disabled: true
               internalDir: "remoting"
               workDirPath: "/tmp"
+jobs:
+  - file: /var/jenkins_home/casc_configs/seed.groovy
