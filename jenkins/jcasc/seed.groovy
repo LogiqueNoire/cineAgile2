@@ -13,12 +13,12 @@ pipelineJob('frontend/dev') {
             scm {
                 git {
                     remote {
-                        url("https://github.com/logiquenoire/cineagile2.git")
+                        url("https://github.com/logiquenoire/cineagilefront.git")
                     }
                     branch("main")
                 }
             }
-            scriptPath("front/Jenkinsfile")
+            scriptPath("Jenkinsfile")
         }
     }
 }
@@ -31,12 +31,12 @@ pipelineJob('backend/dev') {
             scm {
                 git {
                     remote {
-                        url("https://github.com/logiquenoire/cineagile2.git")
+                        url("https://github.com/logiquenoire/cineagileback.git")
                     }
                     branch("main")
                 }
             }
-            scriptPath("back/Jenkinsfile")
+            scriptPath("Jenkinsfile")
         }
     }
 }
