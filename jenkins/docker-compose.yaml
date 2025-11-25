@@ -1,0 +1,38 @@
+services:
+  jenkins:
+    build:
+     context: .
+     dockerfile: Dockerfile
+    container_name: jenkins-lab13
+    environment:
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - ./jcasc:/var/jenkins_home/casc_configs:ro
+    depends_on: #agregado
+      - dind   #agregado
+      - git-awscli-agent
+  #agregado
+  dind:
+    image: docker:27-dind
+    container_name: jenkins-dind
+    privileged: true
+    ports:
+      - "2375:2375"
+    volumes:
+      - dind_storage:/var/lib/docker
+  #Agente personalizado GIT AWS CLI
+  git-awscli-agent:
+    container_name: git-awscli-agent
+    build:
+      context: ./agents/git-awscli
+      dockerfile: Dockerfile
+    image: git-awscli-agent:latest
+    ports:
+      - "50001:50000"
+volumes:
+  jenkins_home:
+  dind_storage: #agregado
