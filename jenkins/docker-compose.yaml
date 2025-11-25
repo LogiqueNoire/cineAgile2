@@ -24,7 +24,6 @@ services:
       - git-awscli-agent
   #agregado
   dind:
-    network_mode: bridge
     image: docker:27-dind
     container_name: jenkins-dind
     privileged: true
