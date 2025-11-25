@@ -79,6 +79,7 @@ resource "aws_s3_bucket" "frontend_bucket" {
 
 # checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
 # checkov:skip=CKV2_AWS_18:Ensure the S3 bucket has access logging enabled se usará cloud watch
+# checkov:skip=CKV_AWS_21: Solo hay hosting estático no es necesario el versioning.
   bucket = var.bucket_nombre
 
 }
@@ -111,7 +112,7 @@ resource "aws_s3_bucket_public_access_block" "block_public_access" {
   bucket = aws_s3_bucket.frontend_bucket.id
   block_public_acls       = true
   block_public_policy     = true
-  ignore_public_acls      = false
+  ignore_public_acls      = true #AWS-55 (S3 tenga activado ignorepublic acls)
   restrict_public_buckets = true
 }
 

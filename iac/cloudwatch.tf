@@ -1,7 +1,7 @@
 # Para route 53
 resource "aws_cloudwatch_log_group" "route53_logs" {
   name              = "/aws/route53/cineagile"
-  retention_in_days = 30
+  retention_in_days = 365   # AWS-338(Logs por 1 año)
 }
 
 resource "aws_iam_role" "route53_logging_role" {
@@ -54,7 +54,7 @@ resource "aws_route53_query_log" "main" {
 # --- 1. Grupo de logs en CloudWatch ---
 resource "aws_cloudwatch_log_group" "frontend_access_logs" {
   name              = "/aws/s3/cineagile-front/access"
-  retention_in_days = 90
+  retention_in_days = 365 # Aws-338 (logs por 1 año)
 }
 
 # --- 2. Rol para que S3 publique logs en CloudWatch ---
@@ -98,8 +98,9 @@ resource "aws_cloudtrail" "s3_access_trail" {
   cloud_watch_logs_group_arn    = aws_cloudwatch_log_group.frontend_access_logs.arn
   cloud_watch_logs_role_arn     = aws_iam_role.s3_to_cloudwatch_role.arn
   include_global_service_events = false
-  is_multi_region_trail         = false
+  is_multi_region_trail         = true #CKV_AWS-67 (Ensure CloudTrail is enabled in all Regions)
   enable_logging                = true
+  enable_log_file_validation = true #CKV_AWS-36 (Ensure CloudTrail log file validation is enabled)
 
   event_selector {
     read_write_type           = "All"
