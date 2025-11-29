@@ -52,6 +52,18 @@ resource "aws_wafregional_rule" "waf_block_sql" {
 
 #falta predicate
 resource "aws_wafregional_rule" "waf_count" {   
+//Falta definir los predicate en las métricas
+resource "aws_wafregional_rule" "waf_allowed" { //permitir solo trafico por hacer
+  name        = "waf_allowed"
+  metric_name = "AllowedRequests" 
+}
+
+resource "aws_wafregional_rule" "waf_blocked" { //sql injection por hacer
+  name        = "waf_blocked"
+  metric_name = "BlockedRequests" 
+}
+
+resource "aws_wafregional_rule" "waf_count" {   // Contar tráfico con un header sospechoso por hacer
   name        = "waf_count"
   metric_name = "CountRequests" 
 }
@@ -77,6 +89,7 @@ resource "aws_wafregional_rule_group" "waf_group" {
 
     priority = 30
     rule_id = aws_wafregional_rule.waf_block_sql.id
+    rule_id = aws_wafregional_rule.waf_blocked.id
   }  
 
     activated_rule {
@@ -96,6 +109,10 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
   default_action {
     type = "BLOCK"
+  metric_name = "example"
+
+  default_action {
+    type = "ALLOW"
   }
 
   rule {
@@ -118,4 +135,8 @@ resource "aws_wafregional_web_acl_association" "wacl1" {
 resource "aws_wafregional_web_acl_association" "wacl2" {
   resource_arn = aws_lb.alb_us_east_2.arn
   web_acl_id = aws_wafregional_web_acl.waf_acl.id
+//Falta crear el web acl
+resource "aws_wafregional_web_acl_association" "foo" {
+  resource_arn = aws_lb.lb_good_1.arn
+  web_acl_id = aws_wafregional_web_acl.foo.id
 }
