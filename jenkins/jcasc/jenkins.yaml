@@ -19,18 +19,20 @@ jenkins:
             uri: "tcp://dind:2375"
         exposeDockerHost: true
         templates:
-          # === Agente Docker ===
+          # === Agente Docker (General) ===
           - name: "docker-agent"
-            labelString: "docker-agent"
+            labelString: "docker"
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
               image: "jenkins/inbound-agent:4.35-3"
               tty: true
+              # Sintaxis estándar volumen: "host_path:container_path"
               mounts:
-                - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+                - "/var/run/docker.sock:/var/run/docker.sock"
             retentionStrategy:
               idleMinutes: 1
+
           # === Agente Docker2 ===
           - name: "docker-agent2"
             labelString: "docker-agent2"
@@ -40,27 +42,24 @@ jenkins:
               image: "jenkins/inbound-agent:4.35-3"
               tty: true
               mounts:
-                - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+                - "/var/run/docker.sock:/var/run/docker.sock"
             retentionStrategy:
               idleMinutes: 1
 
-          # === Agente Node.js ===
-          # - name: "node-agent"
-          #   labelString: "node-agent"
-          #   remoteFs: "/var/jenkins_home/workspace-agents/${ITEM_FULLNAME}"
-          #   dockerTemplateBase:
-          #     image: "node:20.19.6-alpine3.22"
-          #     tty: true
-          #   retentionStrategy:
-          #     idleMinutes: 1
-
-          # === Agente GIT AWS CLI ===
-          - name: "git-awscli-agent"
-            labelString: "git-awscli-agent"
+          # === Agente AWS CLI ===
+          - name: "awscli-agent"
+            labelString: "awscli"
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
+            dockerTemplateBase:
+              image: "amazon/aws-cli:2.32.6" # Usamos la imagen normal
+              tty: true
+              # DESCOMENTAR ESTO es vital para el truco:
+              mounts:
+                - "/var/run/docker.sock:/var/run/docker.sock"
             retentionStrategy:
               idleMinutes: 1
 
+# Configuración para Job DSL Plugin
 jobs:
   - file: /var/jenkins_home/casc_configs/seed.groovy

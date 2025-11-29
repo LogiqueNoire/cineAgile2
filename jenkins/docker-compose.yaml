@@ -7,12 +7,15 @@ services:
     container_name: jenkins-lab13
     environment:
       - CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
+      - DOCKER_HOST=tcp://dind:2375
     dns:
       - 8.8.8.8
       - 1.1.1.1
     ports:
       - "8080:8080"
       - "50000:50000"
+    links:
+      - dind:dind
     volumes:
       - jenkins_home:/var/jenkins_home
       - ./jcasc:/var/jenkins_home/casc_configs:ro
@@ -22,6 +25,7 @@ services:
   #agregado
   dind:
     image: docker:27-dind
+    network_mode: bridge
     container_name: jenkins-dind
     privileged: true
     ports:

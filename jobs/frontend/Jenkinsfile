@@ -14,14 +14,14 @@ pipeline {
     stages {
 
         stage('Checkout') {
-            agent { label 'git-awscli' }
+            agent { label 'docker' }
             steps {
                 checkout scm
             }
         }
 
         stage('Init Submodules') {
-            agent { label 'git-awscli' }
+            agent { label 'docker' }
             steps {
                 sh '''
                     git config --global --add safe.directory $WORKSPACE
