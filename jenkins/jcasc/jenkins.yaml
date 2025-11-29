@@ -1,5 +1,5 @@
 jenkins:
-  systemMessage: "Jenkins initial configuration"
+  systemMessage: "Jenkins Configured with Dynamic Agents"
   securityRealm:
     local:
       allowsSignup: false
@@ -16,50 +16,78 @@ jenkins:
         name: "docker-dind-cloud"
         dockerApi:
           dockerHost:
-            uri: "tcp://dind:2375"
+            uri: "tcp://172.18.0.1:2375"
         exposeDockerHost: true
+
         templates:
-          # === Agente Docker (General) ===
+
+          # === Agente Docker CLI ===
           - name: "docker-agent"
             labelString: "docker"
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
-              image: "jenkins/inbound-agent:4.35-3"
+              image: "docker:29.0.4-cli"
               tty: true
-              # Sintaxis estándar volumen: "host_path:container_path"
               mounts:
                 - "/var/run/docker.sock:/var/run/docker.sock"
             retentionStrategy:
               idleMinutes: 1
 
-          # === Agente Docker2 ===
+          # === Agente Jenkins inbound (genérico) ===
           - name: "docker-agent2"
-            labelString: "docker-agent2"
-            remoteFs: "/home/jenkins"
-            instanceCapStr: 3
-            dockerTemplateBase:
-              image: "jenkins/inbound-agent:4.35-3"
-              tty: true
-              mounts:
-                - "/var/run/docker.sock:/var/run/docker.sock"
-            retentionStrategy:
-              idleMinutes: 1
-
-          # === Agente AWS CLI ===
-          - name: "awscli-agent"
-            labelString: "awscli"
+            labelString: "docker2"
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
-              image: "amazon/aws-cli:2.32.6" # Usamos la imagen normal
+              image: "jenkins/inbound-agent:4.35-3"
               tty: true
-              # DESCOMENTAR ESTO es vital para el truco:
-              mounts:
-                - "/var/run/docker.sock:/var/run/docker.sock"
             retentionStrategy:
               idleMinutes: 1
 
-# Configuración para Job DSL Plugin
+          # === Agente Git ===
+          - name: "docker-agent3"
+            labelString: "docker3"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 5
+            dockerTemplateBase:
+              image: "alpine/git:2.49.1"
+              tty: true
+            retentionStrategy:
+              idleMinutes: 1
+
+          # === Agente NodeJS ===
+          - name: "node-agent"
+            labelString: "node"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 3
+            dockerTemplateBase:
+              image: "node:iron-alpine3.22"
+              tty: true
+            retentionStrategy:
+              idleMinutes: 5
+
+          # === Agente AWS CLI ===
+          - name: "aws-agent"
+            labelString: "aws"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 3
+            dockerTemplateBase:
+              image: "amazon/aws-cli:2.32.6"
+              tty: true
+            retentionStrategy:
+              idleMinutes: 5
+
+          # === Agente Terraform ===
+          - name: "terraform-agent"
+            labelString: "terraform"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 3
+            dockerTemplateBase:
+              image: "hashicorp/terraform:1.14"
+              tty: true
+            retentionStrategy:
+              idleMinutes: 5
+
 jobs:
   - file: /var/jenkins_home/casc_configs/seed.groovy
