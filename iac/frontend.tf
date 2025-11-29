@@ -80,9 +80,11 @@ resource "aws_s3_bucket" "frontend_bucket" {
 # checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
 # checkov:skip=CKV2_AWS_18:Ensure the S3 bucket has access logging enabled se usará cloud watch
 # checkov:skip=CKV_AWS_21: Solo hay hosting estático no es necesario el versioning.
+# checkov:skip=CKV2_AWS_61: No deseo eliminar el s3 despues de cierto tiempo.
   bucket = var.bucket_nombre
 
 }
+
 
 #solucionado CKV_AWS_145 Ensure that S3 buckets are encrypted with KMS by default
 /*
@@ -96,6 +98,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_encrypti
   }
 }
 */
+
+#checkov CKV_AWS_18: Ensure that s3 bucket has access loggin enable
+resource "aws_s3_bucket_logging" "logueo" {
+   bucket = aws_s3_bucket.frontend_bucket.id
+
+   target_bucket = aws_s3_bucket.log_bucket.id
+   target_prefix = "log/"
+ }
+
+
+
 
 resource "aws_s3_bucket_website_configuration" "website_config" {
   bucket = aws_s3_bucket.frontend_bucket.id
