@@ -7,51 +7,59 @@ jenkins:
         - id: admin
           password: admin
 
-  nodes:
-    # Agente Docker 
-    - permanent:
-        name: "docker-agent"
-        image: "jenkins/inbound-agent:latest"
-        labelString: "docker"
-        mode: NORMAL
-        remoteFS: "/home/jenkins"
-        numExecutors: 2
-        launcher:
-          inbound:
-            webSocket: true
-            workDirSettings:
-              disabled: true
-              internalDir: "remoting"
-              workDirPath: "/tmp"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
 
-    # Agente Node.js
-    - permanent:
-        name: "node-agent"
-        image: "node:18-alpine"
-        labelString: "node"
-        mode: NORMAL
-        remoteFS: "/home/jenkins"
-        numExecutors: 2
-        launcher:
-          inbound:
-            webSocket: true
-            workDirSettings:
-              disabled: true
-              internalDir: "remoting"
-              workDirPath: "/tmp"
+  clouds:
+    - docker:
+        name: "docker-dind-cloud"
+        dockerApi:
+          dockerHost:
+            uri: "tcp://dind:2375"
+        exposeDockerHost: true
+        templates:
+          # === Agente Docker (General) ===
+          - name: "docker-agent"
+            labelString: "docker"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 5
+            dockerTemplateBase:
+              image: "jenkins/inbound-agent:4.35-3"
+              tty: true
+              # Sintaxis estándar volumen: "host_path:container_path"
+              mounts:
+                - "/var/run/docker.sock:/var/run/docker.sock"
+            retentionStrategy:
+              idleMinutes: 1
 
-    # Agente GIT Y AWS CLI
-    - permanent:
-        name: "git-awscli-agent"
-        image: "git-awscli-agent:latest"
-        labelString: "git-awscli"
-        mode: NORMAL
-        remoteFS: "/home/jenkins"
-        numExecutors: 1
-        launcher:
-          inbound:
-            webSocket: true
-            workDirSettings:
-              disabled: true
-              internalDir: "remoting"
-              workDirPath: "/tmp"
+          # === Agente Docker2 ===
+          - name: "docker-agent2"
+            labelString: "docker-agent2"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 3
+            dockerTemplateBase:
+              image: "jenkins/inbound-agent:4.35-3"
+              tty: true
+              mounts:
+                - "/var/run/docker.sock:/var/run/docker.sock"
+            retentionStrategy:
+              idleMinutes: 1
+
+          # === Agente AWS CLI ===
+          - name: "awscli-agent"
+            labelString: "awscli"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 5
+            dockerTemplateBase:
+              image: "amazon/aws-cli:2.32.6" # Usamos la imagen normal
+              tty: true
+              # DESCOMENTAR ESTO es vital para el truco:
+              mounts:
+                - "/var/run/docker.sock:/var/run/docker.sock"
+            retentionStrategy:
+              idleMinutes: 1
+
+# Configuración para Job DSL Plugin
+jobs:
+  - file: /var/jenkins_home/casc_configs/seed.groovy

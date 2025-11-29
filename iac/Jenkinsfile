@@ -1,0 +1,147 @@
+pipeline {
+    agent none
+
+    parameters {
+        string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
+        string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
+    }
+
+    environment {
+        FRONTEND_DIST   = 'dist'
+        AWS_DEFAULT_REGION = 'us-east-1' // Ajusta según tu región
+    }
+
+    stages {
+        stage('Checkout') {
+            agent { label 'git-awscli-agent' }
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('1. Linting y validación') {
+            agent { label 'git-awscli-agent' }
+            steps {
+                sh '''
+                    terraform fmt -check
+                    terraform validate
+                '''
+            }
+        }
+
+        stage('2. Test unitarios') {
+            agent { label 'git-awscli-agent' }
+            steps {
+                sh '''
+                    npm test ---unit
+                '''
+            }
+        }
+
+        stage('3. Deploy a dev') {
+            steps {
+                sh '''
+                    terraform workspace select dev || terraform workspace new dev
+                    terraform plan -var-file=env/dev.tfvars
+                    terraform 
+                '''
+            }
+        }
+
+        stage('3.1 Crear la zona Route 53 (segundos)') {
+            agent { label 'git-awscli' }
+            steps {
+                sh '''
+                cd ./iac
+                    terraform apply -target=aws_route53_zone.main -auto-aprove
+                '''
+            }
+        }
+
+        stage('Build Frontend') {
+            agent { label 'node' }
+            steps {
+                sh '''
+                    echo "Creando y validando el certificado SSL (2 min)"
+                    terraform apply \
+                        -target=aws_acm_certificate.cineagile_cert \
+                        -target=aws_route53_record.cineagile_cert_validation \
+                        -target=aws_acm_certificate_validation.cineagile_cert_validation \
+                        -auto-aprove
+                    echo "Crear el bucket S3 y su configuración (rápido, segundos)"
+                    terraform apply \
+                        -target=aws_s3_bucket.frontend_bucket \
+                        -target=aws_s3_bucket_server_side_encryption_configuration.frontend_encryption \
+                        -target=aws_s3_bucket_website_configuration.website_config \
+                        -target=aws_s3_bucket_public_access_block.block_public_access \
+                        -auto-aprove
+                    echo "Crear CloudFront + OAC + política del bucket (5 min ejecución)"
+                    terraform apply \
+                        -target=aws_cloudfront_origin_access_control.oac \
+                        -target=data.aws_iam_policy_document.s3_access_policy \
+                        -target=aws_s3_bucket_policy.s3_access_policy \
+                        -target=aws_cloudfront_response_headers_policy.security_headers \
+                        -target=aws_cloudfront_distribution.s3_distribution \
+                        -auto-aprove
+                    echo "Crear registros DNS principales (dominios -> distribución de cloudfront) (40 min propagación)"
+                    terraform apply \
+                        -target=aws_route53_record.root_domain \
+                        -target=aws_route53_record.www_domain \
+                        -auto-aprove
+                '''
+            }
+        }
+
+        stage('Preparando conexión global') {
+            agent { label 'git-awscli' }
+            steps {
+                echo "Instalando AWS CLI dentro del contenedor..."
+                sh '''
+                    terraform apply \
+                        -target=module.vpc_back_1_us_east_2 \
+                        -target=module.vpc_back_2_us_east_1 \
+                        -target=aws_lb.alb_us_east_1 \
+                        -target=aws_lb.alb_us_east_2 \
+                        -target=aws_lb_target_group.backend_us_east_1 \
+                        -target=aws_lb_target_group.backend_us_east_2 \
+                        -target=aws_lb_listener.https_us_east_1 \
+                        -target=aws_lb_listener.https_us_east_2 \
+                        -target=aws_route53_health_check.alb_us_east_1 \
+                        -target=aws_route53_health_check.alb_us_east_2 \
+                        -target=aws_route53_record.api_us_east_1 \
+                        -target=aws_route53_record.api_us_east_2 \
+                        -auto-aprove
+                '''
+            }
+        }
+
+        stage('Invalidate Cache (CloudFront)') {
+            agent { label 'git-awscli' }
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-credentials-id',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    echo "Invalidando caché de CloudFront ID: ${env.CLOUDFRONT_ID}"
+                    sh '''
+                        aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+                    '''
+                }
+            }
+        }
+
+
+    }
+
+    post {
+        success {
+            echo 'Despliegue del de infraestructura completado exitosamente.'
+        }
+        failure {
+            echo 'Error en el despliegue del Frontend. Revisa la etapa fallida.'
+        }
+    }
+}

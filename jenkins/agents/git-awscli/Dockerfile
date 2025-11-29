@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:jdk21
+FROM jenkins/inbound-agent:jdk17
 
 USER root
 RUN apt-get update && \
@@ -9,3 +9,4 @@ RUN apt-get update && \
     rm -rf aws awscliv2.zip
 
 USER jenkins
+WORKDIR /var/jenkins_home

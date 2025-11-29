@@ -2,12 +2,20 @@ configuration-as-code
 
 
 
-docker-plugin
-docker-workflow
-docker-commons
+docker-plugin:1308.vff6e33248305
+docker-workflow:634.vedc7242b_eda_7
+docker-commons:457.v0f62a_94f11a_3
+docker-java-api:3.7.0-133.v93b_8fb_c17a_77
 
-git
-workflow-aggregator
+git-client:6.4.0
+git:5.8.0
+workflow-aggregator:608.v67378e9d3db_1
 credentials-binding
 ssh-agent
 pipeline-utility-steps
+
+pipeline-graph-view:712.v9ea_78cc1e8a_4
+
+job-dsl:1.93
+
+terraform:1.0.10
