@@ -1,32 +1,30 @@
-//Waf clasico provisional
-
-#que paises limitaremos?
+# WAF GEO PAISES PERMITIDOS
 resource "aws_waf_geo_match_set" "geo_test" {
   name = "geo_test"
 
   geo_match_constraint {
-    type = "COUNTRY"
+    type  = "Country"
     value = "PE"
   }
 
   geo_match_constraint {
-    type = "COUNTRY"
+    type  = "Country"
     value = "US"
   }
 }
 
-resource "aws_wafregional_rule" "waf_allowed" { 
+resource "aws_wafregional_rule" "waf_allowed" {
   name        = "waf_allowed"
-  metric_name = "AllowedRequests" 
+  metric_name = "AllowedRequests"
 
   predicate {
     data_id = aws_waf_geo_match_set.geo_test.id
     negated = false
-    type = "GeoMatch"
+    type    = "GeoMatch"
   }
 }
 
-
+#SQL Injection
 resource "aws_wafregional_sql_injection_match_set" "sql" {
   name = "sql_injection"
 
@@ -39,34 +37,17 @@ resource "aws_wafregional_sql_injection_match_set" "sql" {
   }
 }
 
-resource "aws_wafregional_rule" "waf_block_sql" {  
+resource "aws_wafregional_rule" "waf_block_sql" {
   name        = "waf_block_sql"
-  metric_name = "BlockedSqlI" 
+  metric_name = "BlockedSql"
 
   predicate {
     data_id = aws_wafregional_sql_injection_match_set.sql.id
     negated = false
-    type = "SqlInjectionMatch"
+    type    = "SqlInjectionMatch"
   }
 }
 
-#falta predicate
-resource "aws_wafregional_rule" "waf_count" {   
-//Falta definir los predicate en las métricas
-resource "aws_wafregional_rule" "waf_allowed" { //permitir solo trafico por hacer
-  name        = "waf_allowed"
-  metric_name = "AllowedRequests" 
-}
-
-resource "aws_wafregional_rule" "waf_blocked" { //sql injection por hacer
-  name        = "waf_blocked"
-  metric_name = "BlockedRequests" 
-}
-
-resource "aws_wafregional_rule" "waf_count" {   // Contar tráfico con un header sospechoso por hacer
-  name        = "waf_count"
-  metric_name = "CountRequests" 
-}
 
 resource "aws_wafregional_rule_group" "waf_group" {
   name        = "waf_group"
@@ -74,32 +55,19 @@ resource "aws_wafregional_rule_group" "waf_group" {
 
   activated_rule {
     action {
-      type = "COUNT"
+      type = "BLOCK"
     }
-
-    priority = 50
-    rule_id  = aws_wafregional_rule.waf_count.id
-
+    priority = 10
+    rule_id  = aws_wafregional_rule.waf_block_sql.id
   }
 
   activated_rule {
     action {
-      type = "BLOCK"
-    }
-
-    priority = 30
-    rule_id = aws_wafregional_rule.waf_block_sql.id
-    rule_id = aws_wafregional_rule.waf_blocked.id
-  }  
-
-    activated_rule {
-    action {
       type = "ALLOW"
     }
-
-    priority = 40
-    rule_id = aws_wafregional_rule.waf_allowed.id
-  }        
+    priority = 20
+    rule_id  = aws_wafregional_rule.waf_allowed.id
+  }
 }
 
 
@@ -109,10 +77,6 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
   default_action {
     type = "BLOCK"
-  metric_name = "example"
-
-  default_action {
-    type = "ALLOW"
   }
 
   rule {
@@ -129,14 +93,10 @@ resource "aws_wafregional_web_acl" "waf_acl" {
 
 resource "aws_wafregional_web_acl_association" "wacl1" {
   resource_arn = aws_lb.alb_us_east_1.arn
-  web_acl_id = aws_wafregional_web_acl.waf_acl.id
+  web_acl_id   = aws_wafregional_web_acl.waf_acl.id
 }
 
 resource "aws_wafregional_web_acl_association" "wacl2" {
   resource_arn = aws_lb.alb_us_east_2.arn
-  web_acl_id = aws_wafregional_web_acl.waf_acl.id
-//Falta crear el web acl
-resource "aws_wafregional_web_acl_association" "foo" {
-  resource_arn = aws_lb.lb_good_1.arn
-  web_acl_id = aws_wafregional_web_acl.foo.id
+  web_acl_id   = aws_wafregional_web_acl.waf_acl.id
 }
