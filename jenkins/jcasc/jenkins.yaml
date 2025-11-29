@@ -11,50 +11,56 @@ jenkins:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
 
-  nodes:
-    # Agente Docker
-    - permanent:
-        name: "docker-agent"
-        labelString: "docker"
-        mode: NORMAL
-        remoteFS: "/home/jenkins"
-        numExecutors: 2
-        launcher:
-          inbound:
-            webSocket: true
-            workDirSettings:
-              disabled: true
-              internalDir: "remoting"
-              workDirPath: "/tmp"
+  clouds:
+    - docker:
+        name: "docker-dind-cloud"
+        dockerApi:
+          dockerHost:
+            uri: "tcp://dind:2375"
+        exposeDockerHost: true
+        templates:
+          # === Agente Docker ===
+          - name: "docker-agent"
+            labelString: "docker-agent"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 5
+            dockerTemplateBase:
+              image: "jenkins/inbound-agent:4.35-3"
+              tty: true
+              mounts:
+                - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+            retentionStrategy:
+              idleMinutes: 1
+          # === Agente Docker2 ===
+          - name: "docker-agent2"
+            labelString: "docker-agent2"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 3
+            dockerTemplateBase:
+              image: "jenkins/inbound-agent:4.35-3"
+              tty: true
+              mounts:
+                - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+            retentionStrategy:
+              idleMinutes: 1
 
-    # Agente Node.js
-    - permanent:
-        name: "node-agent"
-        labelString: "node"
-        mode: NORMAL
-        remoteFS: "/home/jenkins"
-        numExecutors: 2
-        launcher:
-          inbound:
-            webSocket: true
-            workDirSettings:
-              disabled: true
-              internalDir: "remoting"
-              workDirPath: "/tmp"
+          # === Agente Node.js ===
+          # - name: "node-agent"
+          #   labelString: "node-agent"
+          #   remoteFs: "/var/jenkins_home/workspace-agents/${ITEM_FULLNAME}"
+          #   dockerTemplateBase:
+          #     image: "node:20.19.6-alpine3.22"
+          #     tty: true
+          #   retentionStrategy:
+          #     idleMinutes: 1
 
-    # Agente GIT AWS CLI
-    - permanent:
-        name: "git-awscli-agent"
-        labelString: "git-awscli"
-        mode: NORMAL
-        remoteFS: "/home/jenkins"
-        numExecutors: 1
-        launcher:
-          inbound:
-            webSocket: true
-            workDirSettings:
-              disabled: true
-              internalDir: "remoting"
-              workDirPath: "/tmp"
+          # === Agente GIT AWS CLI ===
+          - name: "git-awscli-agent"
+            labelString: "git-awscli-agent"
+            remoteFs: "/home/jenkins"
+            instanceCapStr: 5
+            retentionStrategy:
+              idleMinutes: 1
+
 jobs:
   - file: /var/jenkins_home/casc_configs/seed.groovy

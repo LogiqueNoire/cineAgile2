@@ -3,7 +3,7 @@ configuration-as-code
 
 
 docker-plugin:1308.vff6e33248305
-docker-workflow:457.634.vedc7242b_eda_7
+docker-workflow:634.vedc7242b_eda_7
 docker-commons:457.v0f62a_94f11a_3
 docker-java-api:3.7.0-133.v93b_8fb_c17a_77
 

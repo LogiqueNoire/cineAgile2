@@ -10,9 +10,6 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
-    extra_hosts:
-      - "github.com:140.82.121.4"
-      - "api.github.com:140.82.121.5"
     ports:
       - "8080:8080"
       - "50000:50000"
@@ -21,7 +18,7 @@ services:
       - ./jcasc:/var/jenkins_home/casc_configs:ro
     depends_on: #agregado
       - dind   #agregado
-      - git-awscli-agent
+      # - git-awscli-agent
   #agregado
   dind:
     image: docker:27-dind
@@ -32,15 +29,16 @@ services:
     volumes:
       - dind_storage:/var/lib/docker
   #Agente personalizado GIT AWS CLI
-  git-awscli-agent:
-    network_mode: bridge
-    container_name: git-awscli-agent
-    build:
-      context: ./agents/git-awscli
-      dockerfile: Dockerfile
-    image: git-awscli-agent:latest
-    ports:
-      - "50001:50000"
+  # git-awscli-agent:
+  #   network_mode: bridge
+  #   container_name: git-awscli-agent
+  #   build:
+  #     context: ./agents/git-awscli
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "50001:50000"
+  #   environment:
+  #     JENKINS_URL: http://jenkins:8080
 volumes:
   jenkins_home:
   dind_storage: #agregado
