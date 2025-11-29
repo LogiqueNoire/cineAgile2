@@ -77,10 +77,10 @@ resource "aws_route53_record" "www_domain" {
 
 resource "aws_s3_bucket" "frontend_bucket" {
 
-# checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
-# checkov:skip=CKV2_AWS_18:Ensure the S3 bucket has access logging enabled se usará cloud watch
-# checkov:skip=CKV_AWS_21: Solo hay hosting estático no es necesario el versioning.
-# checkov:skip=CKV2_AWS_61: No deseo eliminar el s3 despues de cierto tiempo.
+  # checkov:skip=CKV2_AWS_62:Bucket se usa solo para el hosting est
+  # checkov:skip=CKV2_AWS_18:Ensure the S3 bucket has access logging enabled se usará cloud watch
+  # checkov:skip=CKV_AWS_21: Solo hay hosting estático no es necesario el versioning.
+  # checkov:skip=CKV2_AWS_61: No deseo eliminar el s3 despues de cierto tiempo.
   bucket = var.bucket_nombre
 
 }
@@ -101,11 +101,53 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_encrypti
 
 #checkov CKV_AWS_18: Ensure that s3 bucket has access loggin enable
 resource "aws_s3_bucket_logging" "logueo" {
-   bucket = aws_s3_bucket.frontend_bucket.id
+  bucket = aws_s3_bucket.frontend_bucket.id
 
-   target_bucket = aws_s3_bucket.log_bucket.id
-   target_prefix = "log/"
- }
+  target_bucket = aws_s3_bucket.log_bucket.id
+  target_prefix = "log/"
+}
+
+#Bucekt de los logs
+resource "aws_s3_bucket" "log_bucket" {
+  bucket = "${var.bucket_nombre}-logs"
+}
+
+#"Dueño" del bucket
+resource "aws_s3_bucket_ownership_controls" "log_bucket_controls" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+#acl logs
+resource "aws_s3_bucket_acl" "log_bucket_acl" {
+  depends_on = [aws_s3_bucket_ownership_controls.log_bucket_controls]
+
+  bucket = aws_s3_bucket.log_bucket.id
+  acl    = "log-delivery-write"
+}
+
+resource "aws_s3_bucket_policy" "log_bucket_policy" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "S3ServerAccessLogsPolicy"
+        Effect = "Allow"
+        Principal = {
+          Service = "logging.s3.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "${aws_s3_bucket.log_bucket.arn}/*"
+      }
+    ]
+  })
+}
+
 
 #BUcket de los logs
 resource "aws_s3_bucket" "log_bucket" {
@@ -161,7 +203,7 @@ resource "aws_s3_bucket_website_configuration" "website_config" {
 
 // Bloquea el acceso público (se accederá con OAC)
 resource "aws_s3_bucket_public_access_block" "block_public_access" {
-  bucket = aws_s3_bucket.frontend_bucket.id
+  bucket                  = aws_s3_bucket.frontend_bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true #AWS-55 (S3 tenga activado ignorepublic acls)
@@ -171,10 +213,10 @@ resource "aws_s3_bucket_public_access_block" "block_public_access" {
 // --- 2. Origin Access Control (OAC) para CloudFront ---
 
 resource "aws_cloudfront_origin_access_control" "oac" {
-  name                               = "frontend-oac"
-  description                        = "OAC for S3 bucket"
-  origin_access_control_origin_type  = "s3"
-  signing_behavior                   = "always"
+  name                              = "frontend-oac"
+  description                       = "OAC for S3 bucket"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
 
@@ -212,8 +254,8 @@ resource "aws_kms_key" "s3_key" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowCloudFrontUse"
-        Effect    = "Allow"
+        Sid    = "AllowCloudFrontUse"
+        Effect = "Allow"
         Principal = {
           Service = "cloudfront.amazonaws.com"
         }
@@ -229,8 +271,8 @@ resource "aws_kms_key" "s3_key" {
         Sid       = "AllowRootAccountFullAccess"
         Effect    = "Allow"
         Principal = { AWS = "arn:aws:iam::797606048152:root" }
-        Action   = "kms:*"
-        Resource = "*"
+        Action    = "kms:*"
+        Resource  = "*"
       }
     ]
   })
@@ -316,8 +358,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   viewer_certificate {
     acm_certificate_arn      = aws_acm_certificate.cineagile_cert.arn
-    ssl_support_method        = "sni-only"
-    minimum_protocol_version  = "TLSv1.2_2021"
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 
 }
@@ -355,9 +397,9 @@ resource "aws_cloudfront_response_headers_policy" "security_headers" {
       override = true
     }
     xss_protection {
-      override    = true
-      protection  = true
-      mode_block  = true
+      override   = true
+      protection = true
+      mode_block = true
     }
     frame_options {
       frame_option = "DENY"
