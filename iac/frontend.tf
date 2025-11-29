@@ -148,49 +148,6 @@ resource "aws_s3_bucket_policy" "log_bucket_policy" {
   })
 }
 
-
-#BUcket de los logs
-resource "aws_s3_bucket" "log_bucket" {
-  bucket = "${var.bucket_nombre}-logs"
-}
-
-#Owner para permitir acls
-resource "aws_s3_bucket_ownership_controls" "log_bucket_controls" {
-  bucket = aws_s3_bucket.log_bucket.id
-
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
-}
-
-#Acl del bucke de los logs
-resource "aws_s3_bucket_acl" "log_bucket_acl" {
-  depends_on = [aws_s3_bucket_ownership_controls.log_bucket_controls]
-
-  bucket = aws_s3_bucket.log_bucket.id
-  acl    = "log-delivery-write"
-}
-
-
-resource "aws_s3_bucket_policy" "log_bucket_policy" {
-  bucket = aws_s3_bucket.log_bucket.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "S3ServerAccessLogsPolicy"
-        Effect = "Allow"
-        Principal = {
-          Service = "logging.s3.amazonaws.com"
-        }
-        Action   = "s3:PutObject"
-        Resource = "${aws_s3_bucket.log_bucket.arn}/*"
-      }
-    ]
-  })
-}
-
 resource "aws_s3_bucket_website_configuration" "website_config" {
   bucket = aws_s3_bucket.frontend_bucket.id
   index_document {
