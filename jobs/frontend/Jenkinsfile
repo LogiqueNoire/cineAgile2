@@ -12,12 +12,18 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            agent { label 'docker' }
+        stage('Git clone') {
             steps {
-                checkout scm
+                sh 'git clone https://github.com/logiquenoire/cineagile2.git'
             }
         }
+
+        // stage('Checkout') {
+        //     agent { label 'docker' }
+        //     steps {
+        //         checkout scm
+        //     }
+        // }
 
         stage('Init Submodules') {
             agent { label 'docker' }
