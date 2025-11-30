@@ -31,8 +31,15 @@ jenkins:
               tty: true
               mounts:
                 - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+
+              memoryLimit: 4096        # 4GB
+              memorySwap: 5120         # 5GB
+              cpuShares: 2048 
             retentionStrategy:
-              idleMinutes: 1
+              idleMinutes: 10
+            connector:
+              attach:
+                user: "jenkins"
 
           # === Agente Jenkins inbound (genérico) ===
           - name: "docker-agent2"
@@ -40,14 +47,14 @@ jenkins:
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
-              image: "jenkins/inbound-agent:4.35-3"
+              image: "jenkins/inbound-agent:3352.v17a_fb_4b_2773f-2-jdk21"
               tty: true
             retentionStrategy:
-              idleMinutes: 1
+              idleMinutes: 10
 
           # === Agente Git ===
           - name: "docker-agent3"
-            labelString: "docker3"
+            labelString: "docker4"
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
@@ -88,8 +95,23 @@ jenkins:
               tty: true
             retentionStrategy:
               idleMinutes: 5
-jobs:
-  - file: /var/jenkins_home/casc_configs/seed.groovy
+# jobs:
+#   - script: >
+#       pipelineJob('front2') {
+#         definition {
+#           cpsScm {
+#             scm {
+#               git {
+#                 branch('*/main')
+#                 remote {
+#                   url('${REPOSITORY_URL}')
+#                 }
+#               }
+#             }
+#             scriptPath('pipelines/frontend/Jenkinsfile')
+#           }
+#         }
+#       }
 
 
 tool:

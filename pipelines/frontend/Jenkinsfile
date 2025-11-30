@@ -16,17 +16,17 @@ pipeline {
     }
 
     stages {
-        stage('SCM Verbose') {
-            agent { label 'docker' }
-            steps {
-                sh '''
-                    git init
-                    git remote add origin https://github.com/logiquenoire/cineagile2.git
-                    git fetch --progress --verbose origin main
-                    git checkout -f FETCH_HEAD
-                '''
-            }
-        }
+        // stage('SCM Verbose') {
+        //     agent { label 'docker' }
+        //     steps {
+        //         sh '''
+        //             git init
+        //             git remote add origin https://github.com/logiquenoire/cineagile2.git
+        //             git fetch --progress --verbose origin main
+        //             git checkout -f FETCH_HEAD
+        //         '''
+        //     }
+        // }
 
         stage('Init Submodules') {
             agent { label 'docker' }

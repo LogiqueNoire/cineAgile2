@@ -6,7 +6,7 @@ services:
     container_name: jenkins-lab13
     environment:
       - CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
-      - DOCKER_HOST=tcp://172.18.0.1:2375
+      #- DOCKER_HOST=tcp://172.18.0.1:2375
     ports:
       - "8080:8080"
       - "50000:50000"
@@ -15,18 +15,19 @@ services:
       - ./jcasc:/var/jenkins_home/casc_configs:ro
     depends_on: #agregado
       - dind   #agregado
-      # - git-awscli-agent
     dns:
       - 8.8.8.8
       - 1.1.1.1
-    networks:
-      - jenkins-net
+    network_mode: bridge
+    #networks:
+    #  - jenkins-net
   #agregado
   dind:
     image: docker:27-dind
     environment:
      - DOCKER_TLS_CERTDIR=
     container_name: jenkins-dind
+    command: ["dockerd", "--host=tcp://0.0.0.0:2375", "--tls=false"]
     privileged: true
     ports:
       - "2375:2375"
@@ -35,8 +36,9 @@ services:
     dns:
        - 8.8.8.8
        - 1.1.1.1
-    networks:
-      - jenkins-net
+    network_mode: bridge
+    #networks:
+    #  - jenkins-net
 
 volumes:
   jenkins_home:
