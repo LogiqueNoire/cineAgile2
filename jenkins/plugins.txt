@@ -19,3 +19,5 @@ pipeline-graph-view:712.v9ea_78cc1e8a_4
 job-dsl:1.93
 
 terraform:1.0.10
+
+aws-credentials:254.v978a_5e206a_d7
