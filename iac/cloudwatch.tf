@@ -112,3 +112,34 @@ resource "aws_cloudtrail" "s3_access_trail" {
     }
   }
 }
+
+resource "aws_route53_health_check" "mi_servicio" {
+  fqdn              = var.sub_dominio_api      # api.cineagile.com
+  type              = "HTTPS"
+  resource_path     = "/api/venta/v1/health"  
+  request_interval  = 30                            # cada 30 segundos
+  failure_threshold = 3                             # si falla 3 veces, se considera down
+}
+
+resource "aws_cloudwatch_dashboard" "dashboard_cliente" {
+  dashboard_name = "DashboardCliente"
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type = "metric",
+        x = 0,
+        y = 0,
+        width = 12,
+        height = 6,
+        properties = {
+          metrics = [
+            [ "AWS/Route53", "HealthCheckStatus", "HealthCheckId", aws_route53_health_check.mi_servicio.id ]
+          ],
+          period = 30,
+          stat   = "Minimum",
+          title  = "Servicio Activo (Health Check)"
+        }
+      }
+    ]
+  })
+}
