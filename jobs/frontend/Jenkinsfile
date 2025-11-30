@@ -1,6 +1,10 @@
 pipeline {
     agent none
 
+    options {
+        skipDefaultCheckout()
+    }
+
     parameters {
         string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
         string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
@@ -11,22 +15,16 @@ pipeline {
         AWS_DEFAULT_REGION = 'us-east-1' // Ajusta según tu región
     }
 
-
-    tools {git 'Default'}
-
     stages {
-        stage('SCM') {
+        stage('SCM Verbose') {
             agent { label 'docker' }
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[$class: 'CloneOption', timeout: 60]],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/logiquenoire/cineagile2.git'
-                    ]]
-                ])
+                sh '''
+                    git init
+                    git remote add origin https://github.com/logiquenoire/cineagile2.git
+                    git fetch --progress --verbose origin main
+                    git checkout -f FETCH_HEAD
+                '''
             }
         }
 
