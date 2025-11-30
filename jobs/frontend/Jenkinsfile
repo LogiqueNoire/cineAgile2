@@ -1,8 +1,6 @@
 pipeline {
     agent none
 
-    tools { git 'Default' }
-
     parameters {
         string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
         string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
@@ -14,18 +12,12 @@ pipeline {
     }
 
     stages {
-        stage('Git clone') {
+        stage('Checkout') {
+            agent { label 'docker' }
             steps {
-                sh 'git clone https://github.com/logiquenoire/cineagile2.git'
+                checkout scm
             }
         }
-
-        // stage('Checkout') {
-        //     agent { label 'docker' }
-        //     steps {
-        //         checkout scm
-        //     }
-        // }
 
         stage('Init Submodules') {
             agent { label 'docker' }
