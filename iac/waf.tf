@@ -1,9 +1,6 @@
 # WAF GEO 
 resource "aws_waf_geo_match_set" "geo_allow" {
   name = "geo_allow"
-# WAF GEO 
-resource "aws_waf_geo_match_set" "geo_allow" {
-  name = "geo_allow"
 
   geo_match_constraint {
     type  = "Country"
@@ -14,12 +11,8 @@ resource "aws_waf_geo_match_set" "geo_allow" {
 resource "aws_wafregional_rule" "waf_allow_country" {
   name        = "waf_allow_country"
   metric_name = "allow_country"
-resource "aws_wafregional_rule" "waf_allow_country" {
-  name        = "waf_allow_country"
-  metric_name = "allow_country"
 
   predicate {
-    data_id = aws_waf_geo_match_set.geo_allow.id
     data_id = aws_waf_geo_match_set.geo_allow.id
     negated = false
     type    = "GeoMatch"
@@ -68,8 +61,6 @@ resource "aws_wafregional_rule_group" "waf_group" {
     }
     priority = 5
     rule_id  = aws_wafregional_rule.waf_allow_country.id
-    priority = 5
-    rule_id  = aws_wafregional_rule.waf_allow_country.id
   }
 }
 
@@ -77,10 +68,6 @@ resource "aws_wafregional_rule_group" "waf_group" {
 resource "aws_wafregional_web_acl" "waf_acl" {
   name        = "waf_acl"
   metric_name = "wafacl"
-
-  logging_configuration {
-    log_destination = aws_kinesis_firehose_delivery_stream.waf_acl.arn
-  }
 
   logging_configuration {
     log_destination = aws_kinesis_firehose_delivery_stream.waf_acl.arn
