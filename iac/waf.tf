@@ -101,9 +101,11 @@ resource "aws_wafregional_web_acl_association" "wacl2" {
 
 
 resource "aws_s3_bucket" "waf_logs" {
-  bucket = "${var.bucket_nombre}-waf-logs"
+  bucket = "waf-logs"
   force_destroy = true
 }
+
+
 
 resource "aws_iam_role" "firehose_role" {
   name = "firehose_waf_role"
