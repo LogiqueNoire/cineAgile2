@@ -54,6 +54,29 @@ resource "aws_wafv2_web_acl" "waf_acl" {
       metric_name                = "allow_country"
     }
   }
+  #CKV_AWS_192: AGregar regla para proteccion LOg4j2
+  rule {
+  name     = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
+  priority = 1
+
+  override_action {
+    none {}
+  }
+
+  statement {
+    managed_rule_group_statement {
+      name        = "AWSManagedRulesKnownBadInputsRuleSet"
+      vendor_name = "AWS"
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    sampled_requests_enabled   = true
+    metric_name                = "KnownBadInputs"
+  }
+}
+
 
   visibility_config {
     cloudwatch_metrics_enabled = true
