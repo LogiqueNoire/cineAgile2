@@ -12,11 +12,16 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            agent { label 'docker' }
-            steps {
-                checkout scm
-            }
+        steps {
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: '*/main']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'CloneOption', shallow: false, depth: 0]],
+                userRemoteConfigs: [[
+                    url: 'https://github.com/logiquenoire/cineagile2.git'
+                ]]
+            ])
         }
 
         stage('Init Submodules') {
