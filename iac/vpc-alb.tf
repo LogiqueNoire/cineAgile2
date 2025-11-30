@@ -136,7 +136,19 @@ resource "aws_lb" "alb_us_east_1" {
   internal           = false
   security_groups    = [aws_security_group.alb_us_east_1.id]
   subnets            = module.vpc_back_2_us_east_1.public_subnets
+
+  #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
+  
+  access_logs {
+    bucket = aws_s3_bucket.lb-logs.bucket
+    enabled = true
+    prefix = "cineagile-alb"
+  }
 }
+
+  resource "aws_s3_bucket" "lb-logs" {
+    bucket = "lb-logs"
+  }
 
 resource "aws_lb" "alb_us_east_2" {
   provider           = aws
