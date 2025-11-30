@@ -13,6 +13,7 @@ pipeline {
 
     stages {
         stage('SCM') {
+            agent { label 'docker' }
             steps {
                 checkout([
                     $class: 'GitSCM',
@@ -55,7 +56,7 @@ pipeline {
         }
 
         stage('Deploy to S3') {
-            agent { label 'git-awscli' }
+            agent { label 'aws' }
             steps {
                 withCredentials([
                     usernamePassword(
@@ -76,7 +77,7 @@ pipeline {
         }
 
         stage('Invalidate Cache (CloudFront)') {
-            agent { label 'git-awscli' }
+            agent { label 'aws' }
             steps {
                 withCredentials([
                     usernamePassword(
