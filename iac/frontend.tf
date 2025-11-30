@@ -123,6 +123,11 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_bucket_lifecycle" {
   rule {
     id     = "delete-old-logs"
     status = "Enabled"
+
+    filter {
+      prefix = "logs/" #
+    }
+
     abort_incomplete_multipart_upload {
       days_after_initiation = 7  #CKV_AWS_300 Ensure S3 lifecycle configuration sets period for aborting failed uploads
     }
