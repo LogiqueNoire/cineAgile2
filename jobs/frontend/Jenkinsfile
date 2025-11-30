@@ -1,6 +1,8 @@
 pipeline {
     agent none
 
+    tools { git 'Default' }
+
     parameters {
         string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
         string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
