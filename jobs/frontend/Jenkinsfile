@@ -12,16 +12,18 @@ pipeline {
     }
 
     stages {
-        steps {
-            checkout([
-                $class: 'GitSCM',
-                branches: [[name: '*/main']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [[$class: 'CloneOption', shallow: false, depth: 0]],
-                userRemoteConfigs: [[
-                    url: 'https://github.com/logiquenoire/cineagile2.git'
-                ]]
-            ])
+        stage {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CloneOption', timeout: 60]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/logiquenoire/cineagile2.git'
+                    ]]
+                ])
+            }
         }
 
         stage('Init Submodules') {
