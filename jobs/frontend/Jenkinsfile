@@ -11,6 +11,9 @@ pipeline {
         AWS_DEFAULT_REGION = 'us-east-1' // Ajusta según tu región
     }
 
+
+    tools {git 'git'}
+
     stages {
         stage('SCM') {
             agent { label 'docker' }
