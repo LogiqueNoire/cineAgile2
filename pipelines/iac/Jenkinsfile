@@ -20,7 +20,7 @@ pipeline {
         }
 
         stage('1. Linting y validación') {
-            agent { label 'git-awscli-agent' }
+            agent { label 'terraform' }
             steps {
                 sh '''
                     terraform fmt -check
@@ -30,7 +30,7 @@ pipeline {
         }
 
         stage('2. Test unitarios') {
-            agent { label 'git-awscli-agent' }
+            agent { label 'node' }
             steps {
                 sh '''
                     npm test ---unit
@@ -39,6 +39,7 @@ pipeline {
         }
 
         stage('3. Deploy a dev') {
+            agent { label 'terraform' }
             steps {
                 sh '''
                     terraform workspace select dev || terraform workspace new dev
@@ -49,17 +50,17 @@ pipeline {
         }
 
         stage('3.1 Crear la zona Route 53 (segundos)') {
-            agent { label 'git-awscli' }
+            agent { label 'terraform' }
             steps {
                 sh '''
-                cd ./iac
+                    cd ./iac
                     terraform apply -target=aws_route53_zone.main -auto-aprove
                 '''
             }
         }
 
         stage('Build Frontend') {
-            agent { label 'node' }
+            agent { label 'terraform' }
             steps {
                 sh '''
                     echo "Creando y validando el certificado SSL (2 min)"
@@ -93,7 +94,7 @@ pipeline {
         }
 
         stage('Preparando conexión global') {
-            agent { label 'git-awscli' }
+            agent { label 'terraform' }
             steps {
                 echo "Instalando AWS CLI dentro del contenedor..."
                 sh '''
@@ -116,7 +117,7 @@ pipeline {
         }
 
         stage('Invalidate Cache (CloudFront)') {
-            agent { label 'git-awscli' }
+            agent { label 'aws' }
             steps {
                 withCredentials([
                     usernamePassword(
