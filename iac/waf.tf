@@ -1,24 +1,19 @@
-# WAF GEO PAISES PERMITIDOS
-resource "aws_waf_geo_match_set" "geo_test" {
-  name = "geo_test"
+# WAF GEO 
+resource "aws_waf_geo_match_set" "geo_allow" {
+  name = "geo_allow"
 
   geo_match_constraint {
     type  = "Country"
     value = "PE"
   }
-
-  geo_match_constraint {
-    type  = "Country"
-    value = "US"
-  }
 }
 
-resource "aws_wafregional_rule" "waf_allowed" {
-  name        = "waf_allowed"
-  metric_name = "AllowedRequests"
+resource "aws_wafregional_rule" "waf_allow_country" {
+  name        = "waf_allow_country"
+  metric_name = "allow_country"
 
   predicate {
-    data_id = aws_waf_geo_match_set.geo_test.id
+    data_id = aws_waf_geo_match_set.geo_allow.id
     negated = false
     type    = "GeoMatch"
   }
@@ -48,7 +43,6 @@ resource "aws_wafregional_rule" "waf_block_sql" {
   }
 }
 
-
 resource "aws_wafregional_rule_group" "waf_group" {
   name        = "waf_group"
   metric_name = "metricas"
@@ -65,8 +59,8 @@ resource "aws_wafregional_rule_group" "waf_group" {
     action {
       type = "ALLOW"
     }
-    priority = 20
-    rule_id  = aws_wafregional_rule.waf_allowed.id
+    priority = 5
+    rule_id  = aws_wafregional_rule.waf_allow_country.id
   }
 }
 
@@ -74,6 +68,10 @@ resource "aws_wafregional_rule_group" "waf_group" {
 resource "aws_wafregional_web_acl" "waf_acl" {
   name        = "waf_acl"
   metric_name = "wafacl"
+
+  logging_configuration {
+    log_destination = aws_kinesis_firehose_delivery_stream.waf_acl.arn
+  }
 
   default_action {
     type = "BLOCK"
@@ -100,3 +98,61 @@ resource "aws_wafregional_web_acl_association" "wacl2" {
   resource_arn = aws_lb.alb_us_east_2.arn
   web_acl_id   = aws_wafregional_web_acl.waf_acl.id
 }
+
+
+resource "aws_s3_bucket" "waf_logs" {
+  bucket = "${var.bucket_nombre}-waf-logs"
+  force_destroy = true
+}
+
+resource "aws_iam_role" "firehose_role" {
+  name = "firehose_waf_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = { Service = "firehose.amazonaws.com" }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "firehose_policy" {
+  role = aws_iam_role.firehose_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "s3:AbortMultipartUpload",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:ListBucketMultipartUploads",
+        "s3:PutObject"
+      ]
+      Resource = [
+        aws_s3_bucket.waf_logs.arn,
+        "${aws_s3_bucket.waf_logs.arn}/*"
+      ]
+    }]
+  })
+}
+
+resource "aws_kinesis_firehose_delivery_stream" "waf_acl" {
+  name        = "waf_logs_stream"
+  destination = "extended_s3"
+
+#checkov:skip=CKV_AWS_241: NO valido para esta version ahora se usa extend_s3
+ extended_s3_configuration {
+  role_arn           = aws_iam_role.firehose_role.arn
+  bucket_arn         = aws_s3_bucket.waf_logs.arn
+  compression_format = "GZIP"
+  buffering_size = 5
+  buffering_interval = 300
+ } 
+}
+
+
