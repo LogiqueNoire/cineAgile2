@@ -137,6 +137,7 @@ resource "aws_lb" "alb_us_east_1" {
   security_groups    = [aws_security_group.alb_us_east_1.id]
   subnets            = module.vpc_back_2_us_east_1.public_subnets
   drop_invalid_header_fields = true #CKV_AWS_131 alb dropea headers hhtp
+  enable_deletion_protection = true  #CKV_AWS_150
 
   #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
   
@@ -159,6 +160,14 @@ resource "aws_lb" "alb_us_east_2" {
   security_groups    = [aws_security_group.alb_us_east_2.id]
   subnets            = module.vpc_back_1_us_east_2.public_subnets
   drop_invalid_header_fields = true #CKV_AWS_131 alb dropea headers hhtp
+  enable_deletion_protection = true  #CKV_AWS_150
+
+   #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
+    access_logs {
+    bucket = aws_s3_bucket.alb_logs_s3.bucket
+    enabled = true
+    prefix = "cineagile-alb"
+  }
 }
 
 # --- Target Group para backend en us-east-1 ---
