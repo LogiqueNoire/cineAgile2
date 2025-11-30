@@ -13,7 +13,7 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            agent { label 'git-awscli-agent' }
+            agent { label 'docker' }
             steps {
                 checkout scm
             }
