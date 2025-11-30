@@ -16,12 +16,14 @@ pipeline {
             agent { label 'docker' }
             steps {
                 checkout scm
+                stash name: 'source', includes: '**/*'
             }
         }
 
         stage('1. Linting y validación') {
             agent { label 'terraform' }
             steps {
+                unstash 'source'
                 sh '''
                     terraform fmt -check
                     terraform validate
@@ -32,36 +34,44 @@ pipeline {
         stage('2. Test unitarios') {
             agent { label 'node' }
             steps {
+                unstash 'source'
                 sh '''
                     npm test ---unit
                 '''
             }
         }
 
-        stage('3. Deploy a dev') {
+        stage('Deploy a dev') {
             agent { label 'terraform' }
             steps {
-                sh '''
-                    terraform workspace select dev || terraform workspace new dev
-                    terraform plan -var-file=env/dev.tfvars
-                    terraform 
-                '''
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']])
+                {
+                    sh '''
+                        terraform workspace select dev || terraform workspace new dev
+                        terraform plan -var-file=env/dev.tfvars
+                        terraform apply -auto-approve
+                    '''
+                }
             }
         }
 
         stage('3.1 Crear la zona Route 53 (segundos)') {
             agent { label 'terraform' }
             steps {
-                sh '''
-                    cd ./iac
-                    terraform apply -target=aws_route53_zone.main -auto-aprove
-                '''
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                    unstash 'source'
+                    sh '''
+                        cd ./iac
+                        terraform apply -target=aws_route53_zone.main -auto-aprove
+                    '''
+                }
             }
         }
 
         stage('Build Frontend') {
             agent { label 'terraform' }
             steps {
+                unstash 'source'
                 sh '''
                     echo "Creando y validando el certificado SSL (2 min)"
                     terraform apply \
@@ -96,7 +106,7 @@ pipeline {
         stage('Preparando conexión global') {
             agent { label 'terraform' }
             steps {
-                echo "Instalando AWS CLI dentro del contenedor..."
+                unstash 'source'
                 sh '''
                     terraform apply \
                         -target=module.vpc_back_1_us_east_2 \
@@ -116,23 +126,23 @@ pipeline {
             }
         }
 
-        stage('Invalidate Cache (CloudFront)') {
-            agent { label 'aws' }
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws-credentials-id',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    echo "Invalidando caché de CloudFront ID: ${env.CLOUDFRONT_ID}"
-                    sh '''
-                        aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
-                    '''
-                }
-            }
-        }
+        // stage('Invalidate Cache (CloudFront)') {
+        //     agent { label 'aws' }
+        //     steps {
+        //         withCredentials([
+        //             usernamePassword(
+        //                 credentialsId: 'aws-credentials-id',
+        //                 usernameVariable: 'AWS_ACCESS_KEY_ID',
+        //                 passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+        //             )
+        //         ]) {
+        //             echo "Invalidando caché de CloudFront ID: ${env.CLOUDFRONT_ID}"
+        //             sh '''
+        //                 aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
+        //             '''
+        //         }
+        //     }
+        // }
 
 
     }
