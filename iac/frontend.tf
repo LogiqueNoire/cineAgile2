@@ -2,6 +2,10 @@
 resource "aws_route53_zone" "main" {
   name = var.dominio_nombre
 }
+# (DNSSEC) signing is enabled for Amazon Route 53 public hosted 
+resource "aws_route53_hosted_zone_dnssec" "main_dnssec" {
+  hosted_zone_id = aws_route53_zone.main.id
+}
 
 # Certificado SSL para CloudFront
 resource "aws_acm_certificate" "cineagile_cert" {
@@ -112,12 +116,64 @@ resource "aws_s3_bucket" "log_bucket" {
   bucket = "${var.bucket_nombre}-logs"
 }
 
+// Lyfeclicng bucket de los logs
+resource "aws_s3_bucket_lifecycle_configuration" "log_bucket_lifecycle" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  rule {
+    id     = "delete-old-logs"
+    status = "Enabled"
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7  #CKV_AWS_300 Ensure S3 lifecycle configuration sets period for aborting failed uploads
+    }
+
+    expiration {
+      days = 30
+    }
+  }
+}
+// S3 Bucket does not have public access blocks
+resource "aws_s3_bucket_public_access_block" "bucket_block" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  block_public_acls       = true
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+}
+
+#AWS S3 Object Versioning is disabled
+resource "aws_s3_bucket_versioning" "versioning_block" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+ versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# checkov:skip=CKV2_AWS_62:  via sns(tal vez opcioonal)
+#S3 buckets do not have event notifications enabled , 
+/*resource "aws_sns_topic" "log_bucket_notifications" {
+  name = "${var.bucket_nombre}-logs-notifications"
+}
+
+resource "aws_s3_bucket_notification" "log_bucket_notification" {
+  bucket = aws_s3_bucket.log_bucket.id
+
+  topic {
+    topic_arn     = aws_sns_topic.log_bucket_notifications.arn
+    events        = ["s3:ObjectCreated:*"]
+    filter_prefix = "logs/"
+  }
+} */
+
+
 #"Dueño" del bucket
 resource "aws_s3_bucket_ownership_controls" "log_bucket_controls" {
   bucket = aws_s3_bucket.log_bucket.id
 
   rule {
-    object_ownership = "BucketOwnerPreferred"
+    object_ownership = "BucketOwnerEnforced"
   }
 }
 
