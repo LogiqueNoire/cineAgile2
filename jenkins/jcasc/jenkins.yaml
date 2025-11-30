@@ -27,10 +27,10 @@ jenkins:
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
-              image: "docker:29.0.4-cli"
+              image: "jenkins/inbound-agent:3352.v17a_fb_4b_2773f-2-jdk21"
               tty: true
               mounts:
-                - "/var/run/docker.sock:/var/run/docker.sock"
+                - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
             retentionStrategy:
               idleMinutes: 1
 
@@ -88,6 +88,12 @@ jenkins:
               tty: true
             retentionStrategy:
               idleMinutes: 5
-
 jobs:
   - file: /var/jenkins_home/casc_configs/seed.groovy
+
+
+tool:
+  git:
+    installations:
+      - name: git
+        home: /usr/bin/git
