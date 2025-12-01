@@ -64,6 +64,7 @@ pipeline {
                         cd iac
                         terraform init
                         terraform apply -target=aws_route53_zone.main -auto-approve -var-file=dev.tfvars
+                        ls
                     '''
                 }
                 stash name: 'tfstate', includes: 'iac/terraform.tfstate'
