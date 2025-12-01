@@ -23,7 +23,7 @@ resource "aws_ecr_repository" "venta" {
   encryption_configuration {
     encryption_type = "AES256"
   }
-  
+
 }
 
 resource "aws_ecr_repository" "tiempo" {
@@ -37,5 +37,5 @@ resource "aws_ecr_repository" "tiempo" {
   encryption_configuration {
     encryption_type = "AES256"
   }
-  
+
 }

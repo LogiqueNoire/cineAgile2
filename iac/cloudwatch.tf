@@ -1,8 +1,8 @@
 # Para route 53
 resource "aws_cloudwatch_log_group" "route53_logs" {
   name              = "/aws/route53/cineagile"
-  retention_in_days = 365   # AWS-338(Logs por 1 año)
-  kms_key_id = aws_kms_key.cloudwatch_key.arn #AWS_158 CIfrado kms
+  retention_in_days = 365                            # AWS-338(Logs por 1 año)
+  kms_key_id        = aws_kms_key.cloudwatch_key.arn #AWS_158 CIfrado kms
 }
 
 resource "aws_kms_key" "cloudwatch_key" {
@@ -28,13 +28,13 @@ resource "aws_kms_key" "cloudwatch_key" {
       },
 
       {
-        Sid       = "AllowRootAccountFullAccess"
-        Effect    = "Allow"
+        Sid    = "AllowRootAccountFullAccess"
+        Effect = "Allow"
         Principal = {
-           AWS = "arn:aws:iam::797606048152:root" 
+          AWS = "arn:aws:iam::797606048152:root"
         }
-        Action    = "kms:*"
-        Resource  = "*"
+        Action   = "kms:*"
+        Resource = "*"
       }
     ]
   })
@@ -48,8 +48,8 @@ resource "aws_iam_role" "route53_logging_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
       Principal = {
         Service = "route53.amazonaws.com"
       }
@@ -58,11 +58,11 @@ resource "aws_iam_role" "route53_logging_role" {
 }
 
 resource "aws_iam_policy" "route53_logging_policy" {
-  name   = "route53-logging-policy"
+  name = "route53-logging-policy"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action   = [
+      Action = [
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ]
@@ -92,8 +92,8 @@ resource "aws_route53_query_log" "main" {
 # --- 1. Grupo de logs en CloudWatch ---
 resource "aws_cloudwatch_log_group" "frontend_access_logs" {
   name              = "/aws/s3/cineagile-front/access"
-  retention_in_days = 365 # Aws-338 (logs por 1 año)
-   kms_key_id = aws_kms_key.cloudwatch_key.arn #AWS_158 CIfrado kms
+  retention_in_days = 365                            # Aws-338 (logs por 1 año)
+  kms_key_id        = aws_kms_key.cloudwatch_key.arn #AWS_158 CIfrado kms
 }
 
 # --- 2. Rol para que S3 publique logs en CloudWatch ---
@@ -139,7 +139,7 @@ resource "aws_cloudtrail" "s3_access_trail" {
   include_global_service_events = false
   is_multi_region_trail         = true #CKV_AWS-67 (Ensure CloudTrail is enabled in all Regions)
   enable_logging                = true
-  enable_log_file_validation = true #CKV_AWS-36 (Ensure CloudTrail log file validation is enabled)
+  enable_log_file_validation    = true #CKV_AWS-36 (Ensure CloudTrail log file validation is enabled)
 
   event_selector {
     read_write_type           = "All"
@@ -153,11 +153,11 @@ resource "aws_cloudtrail" "s3_access_trail" {
 }
 
 resource "aws_route53_health_check" "mi_servicio" {
-  fqdn              = var.sub_dominio_api      # api.cineagile.com
+  fqdn              = var.sub_dominio_api # api.cineagile.com
   type              = "HTTPS"
-  resource_path     = "/api/venta/v1/health"  
-  request_interval  = 30                            # cada 30 segundos
-  failure_threshold = 3                             # si falla 3 veces, se considera down
+  resource_path     = "/api/venta/v1/health"
+  request_interval  = 30 # cada 30 segundos
+  failure_threshold = 3  # si falla 3 veces, se considera down
 }
 
 resource "aws_cloudwatch_dashboard" "dashboard_cliente" {
@@ -165,14 +165,14 @@ resource "aws_cloudwatch_dashboard" "dashboard_cliente" {
   dashboard_body = jsonencode({
     widgets = [
       {
-        type = "metric",
-        x = 0,
-        y = 0,
-        width = 12,
+        type   = "metric",
+        x      = 0,
+        y      = 0,
+        width  = 12,
         height = 6,
         properties = {
           metrics = [
-            [ "AWS/Route53", "HealthCheckStatus", "HealthCheckId", aws_route53_health_check.mi_servicio.id ]
+            ["AWS/Route53", "HealthCheckStatus", "HealthCheckId", aws_route53_health_check.mi_servicio.id]
           ],
           period = 30,
           stat   = "Minimum",
