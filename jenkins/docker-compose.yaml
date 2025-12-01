@@ -1,48 +1,50 @@
 services:
   jenkins:
-    network_mode: bridge
     build:
      context: .
      dockerfile: Dockerfile
     container_name: jenkins-lab13
     environment:
       - CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
-      - DOCKER_HOST=tcp://dind:2375
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+      #- DOCKER_HOST=tcp://172.18.0.1:2375
     ports:
       - "8080:8080"
       - "50000:50000"
-    links:
-      - dind:dind
     volumes:
       - jenkins_home:/var/jenkins_home
       - ./jcasc:/var/jenkins_home/casc_configs:ro
     depends_on: #agregado
       - dind   #agregado
-      # - git-awscli-agent
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    network_mode: bridge
+    #networks:
+    #  - jenkins-net
   #agregado
   dind:
     image: docker:27-dind
-    network_mode: bridge
+    environment:
+     - DOCKER_TLS_CERTDIR=
     container_name: jenkins-dind
+    command: ["dockerd", "--host=tcp://0.0.0.0:2375", "--tls=false"]
     privileged: true
     ports:
       - "2375:2375"
     volumes:
       - dind_storage:/var/lib/docker
-  #Agente personalizado GIT AWS CLI
-  # git-awscli-agent:
-  #   network_mode: bridge
-  #   container_name: git-awscli-agent
-  #   build:
-  #     context: ./agents/git-awscli
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "50001:50000"
-  #   environment:
-  #     JENKINS_URL: http://jenkins:8080
+    dns:
+       - 8.8.8.8
+       - 1.1.1.1
+    network_mode: bridge
+    #networks:
+    #  - jenkins-net
+
 volumes:
   jenkins_home:
   dind_storage: #agregado
+
+networks:
+  jenkins-net:
+    driver: bridge
+

@@ -1,6 +1,10 @@
 pipeline {
     agent none
 
+    options {
+        skipDefaultCheckout()
+    }
+
     parameters {
         string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
         string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
@@ -12,12 +16,17 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            agent { label 'docker' }
-            steps {
-                checkout scm
-            }
-        }
+        // stage('SCM Verbose') {
+        //     agent { label 'docker' }
+        //     steps {
+        //         sh '''
+        //             git init
+        //             git remote add origin https://github.com/logiquenoire/cineagile2.git
+        //             git fetch --progress --verbose origin main
+        //             git checkout -f FETCH_HEAD
+        //         '''
+        //     }
+        // }
 
         stage('Init Submodules') {
             agent { label 'docker' }
@@ -48,7 +57,7 @@ pipeline {
         }
 
         stage('Deploy to S3') {
-            agent { label 'git-awscli' }
+            agent { label 'aws' }
             steps {
                 withCredentials([
                     usernamePassword(
@@ -69,7 +78,7 @@ pipeline {
         }
 
         stage('Invalidate Cache (CloudFront)') {
-            agent { label 'git-awscli' }
+            agent { label 'aws' }
             steps {
                 withCredentials([
                     usernamePassword(

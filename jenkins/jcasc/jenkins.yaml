@@ -27,12 +27,19 @@ jenkins:
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
-              image: "docker:29.0.4-cli"
+              image: "jenkins/inbound-agent:alpine3.22-jdk21"
               tty: true
-              mounts:
-                - "/var/run/docker.sock:/var/run/docker.sock"
+              # mounts:
+              #   - "type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock"
+
+              memoryLimit: 4096        # 4GB
+              memorySwap: 5120         # 5GB
+              cpuShares: 2048 
             retentionStrategy:
-              idleMinutes: 1
+              idleMinutes: 10
+            connector:
+              attach:
+                user: "jenkins"
 
           # === Agente Jenkins inbound (genérico) ===
           - name: "docker-agent2"
@@ -40,14 +47,14 @@ jenkins:
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
-              image: "jenkins/inbound-agent:4.35-3"
+              image: "jenkins/inbound-agent:alpine3.22-jdk21"
               tty: true
             retentionStrategy:
-              idleMinutes: 1
+              idleMinutes: 10
 
           # === Agente Git ===
           - name: "docker-agent3"
-            labelString: "docker3"
+            labelString: "docker4"
             remoteFs: "/home/jenkins"
             instanceCapStr: 5
             dockerTemplateBase:
@@ -59,7 +66,7 @@ jenkins:
           # === Agente NodeJS ===
           - name: "node-agent"
             labelString: "node"
-            remoteFs: "/home/jenkins"
+            remoteFs: "/home/node"
             instanceCapStr: 3
             dockerTemplateBase:
               image: "node:iron-alpine3.22"
@@ -70,24 +77,61 @@ jenkins:
           # === Agente AWS CLI ===
           - name: "aws-agent"
             labelString: "aws"
-            remoteFs: "/home/jenkins"
+            remoteFs: "/home/aws"
             instanceCapStr: 3
             dockerTemplateBase:
               image: "amazon/aws-cli:2.32.6"
               tty: true
             retentionStrategy:
               idleMinutes: 5
+            connector:
+              attach:
+                user: "jenkins"
 
           # === Agente Terraform ===
           - name: "terraform-agent"
             labelString: "terraform"
-            remoteFs: "/home/jenkins"
+            remoteFs: "/home/terraform"
             instanceCapStr: 3
             dockerTemplateBase:
               image: "hashicorp/terraform:1.14"
               tty: true
             retentionStrategy:
               idleMinutes: 5
+            connector:
+              attach:
+                user: "jenkins"
+# jobs:
+#   - script: >
+#       pipelineJob('front2') {
+#         definition {
+#           cpsScm {
+#             scm {
+#               git {
+#                 branch('*/main')
+#                 remote {
+#                   url('${REPOSITORY_URL}')
+#                 }
+#               }
+#             }
+#             scriptPath('pipelines/frontend/Jenkinsfile')
+#           }
+#         }
+#       }
 
-jobs:
-  - file: /var/jenkins_home/casc_configs/seed.groovy
+
+tool:
+  git:
+    installations:
+      - name: git
+        home: /usr/bin/git
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+        - aws:
+            scope: GLOBAL
+            id: "aws_credentials"
+            accessKey: ${AWS_ACCESS_KEY_ID}
+            secretKey: ${AWS_SECREY_KEY_ACCESS}
