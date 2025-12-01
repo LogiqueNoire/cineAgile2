@@ -4,6 +4,8 @@ services:
      context: .
      dockerfile: Dockerfile
     container_name: jenkins-lab13
+    env_file:
+      - ../.env 
     environment:
       - CASC_JENKINS_CONFIG=/var/jenkins_home/casc_configs/jenkins.yaml
       #- DOCKER_HOST=tcp://172.18.0.1:2375

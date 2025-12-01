@@ -1,6 +1,10 @@
 pipeline {
     agent none
 
+    options {
+        skipDefaultCheckout()
+    }
+
     // parameters {
     //     string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
     //     string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
@@ -25,6 +29,8 @@ pipeline {
             steps {
                 unstash 'source'
                 sh '''
+                    pwd
+                    cd /iac
                     terraform fmt -check
                     terraform validate
                 '''
@@ -36,19 +42,21 @@ pipeline {
             steps {
                 unstash 'source'
                 sh '''
+                    pwd
                     npm test ---unit
                 '''
             }
         }
 
-        stage('Deploy a dev') {
+        stage('3. Deploy a dev') {
             agent { label 'terraform' }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']])
                 {
                     sh '''
+                        cd iac
                         terraform workspace select dev || terraform workspace new dev
-                        terraform plan -var-file=env/dev.tfvars
+                        terraform plan -var-file=dev.tfvars
                         terraform apply -auto-approve
                     '''
                 }
