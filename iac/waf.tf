@@ -101,10 +101,14 @@ resource "aws_wafv2_web_acl_association" "wacl2" {
   web_acl_arn  = aws_wafv2_web_acl.waf_acl.arn
 }
 
-resource "aws_s3_bucket" "waf_logs_s3" {
-  bucket        = "waf-logs-s3-agiles-25"
-  force_destroy = true
+module "waf_logs" {
+  source      = "./modules/bucket_logs_s3"
+  bucket_name = "mis-logs-waf-25"
+  tags = {
+    Project = "cineagile"
+  }
 }
+
 
 resource "aws_iam_role" "firehose_role" {
   name = "firehose_waf_role"
@@ -135,9 +139,10 @@ resource "aws_iam_role_policy" "firehose_policy" {
         "s3:PutObject"
       ]
       Resource = [
-        aws_s3_bucket.waf_logs_s3.arn,
-        "${aws_s3_bucket.waf_logs_s3.arn}/*"
-      ]
+        module.waf_logs.bucket_arn,
+      "${module.waf_logs.bucket_arn}/*"
+]
+
     }]
   })
 }
@@ -148,7 +153,8 @@ resource "aws_kinesis_firehose_delivery_stream" "waf_acl" {
 
   extended_s3_configuration {
     role_arn           = aws_iam_role.firehose_role.arn
-    bucket_arn         = aws_s3_bucket.waf_logs_s3.arn
+    bucket_arn         = module.waf_logs.bucket_arn
+
     compression_format = "GZIP"
     buffering_size     = 5
     buffering_interval = 300
