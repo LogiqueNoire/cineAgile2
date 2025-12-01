@@ -142,15 +142,18 @@ resource "aws_lb" "alb_us_east_1" {
   #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
 
   access_logs {
-    bucket  = aws_s3_bucket.alb_logs_s3.bucket
-    enabled = true
-    prefix  = "cineagile-alb"
-  }
+  bucket  = module.alb_logs.bucket_id
+  enabled = true
+  prefix  = "cineagile-alb"
 }
 
-resource "aws_s3_bucket" "alb_logs_s3" {
-  bucket = "alb-logs-s3-agiles-25"
 }
+
+module "alb_logs" {
+  source      = "./modules/bucket_logs_s3"
+  bucket_name = "alb-logs-s3-agiles-25"
+}
+
 
 resource "aws_lb" "alb_us_east_2" {
   provider                   = aws
@@ -164,7 +167,7 @@ resource "aws_lb" "alb_us_east_2" {
 
   #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
   access_logs {
-    bucket  = aws_s3_bucket.alb_logs_s3.bucket
+    bucket  = module.alb_logs.bucket_id
     enabled = true
     prefix  = "cineagile-alb"
   }
