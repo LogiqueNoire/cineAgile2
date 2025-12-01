@@ -30,7 +30,6 @@ pipeline {
                 unstash 'source'
                 sh '''
                     pwd
-                    cd /iac
                     terraform fmt -check
                     terraform validate
                 '''
