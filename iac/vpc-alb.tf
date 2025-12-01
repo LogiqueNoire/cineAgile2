@@ -223,26 +223,28 @@ resource "aws_security_group" "alb_us_east_1" {
   description = "Security group for ALB in us-east-1"
   vpc_id      = module.vpc_back_2_us_east_1.vpc_id
 
-  ingress {
+  /*ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Permite todo el trafico por el 80"
-  }
+    description = "Permite todo el trafico por el 80"  #probando borrar el puerto 80
+  } */
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "PErmite https"
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Permitir https saliente"
   }
 
   tags = { Name = "alb-sg-us-east-1" }
@@ -254,25 +256,27 @@ resource "aws_security_group" "alb_us_east_2" {
   description = "Security group for ALB in us-east-2"
   vpc_id      = module.vpc_back_1_us_east_2.vpc_id
 
-  ingress {
+  /*ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-  }
+  } */
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Permitir https"
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Permitir https saliente"
   }
 
   tags = { Name = "alb-sg-us-east-2" }
