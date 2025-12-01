@@ -156,10 +156,10 @@ resource "aws_s3_bucket_versioning" "versioning_block" {
   }
 }
 
-# checkov:skip=CKV2_AWS_62:  via sns(tal vez opcioonal)
+
 #S3 buckets do not have event notifications enabled , 
-/*resource "aws_sns_topic" "log_bucket_notifications" {
-  name = "${var.bucket_nombre}-logs-notifications"
+resource "aws_sns_topic" "log_bucket_notifications" {
+  name = "sns-logs-notifications"
 }
 
 resource "aws_s3_bucket_notification" "log_bucket_notification" {
@@ -170,7 +170,7 @@ resource "aws_s3_bucket_notification" "log_bucket_notification" {
     events        = ["s3:ObjectCreated:*"]
     filter_prefix = "logs/"
   }
-} */
+} 
 
 
 #"Dueño" del bucket

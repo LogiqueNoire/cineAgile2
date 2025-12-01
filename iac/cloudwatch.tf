@@ -132,6 +132,7 @@ resource "aws_iam_role_policy" "s3_to_cloudwatch_policy" {
 
 # --- 4. CloudTrail para capturar los accesos S3 ---
 resource "aws_cloudtrail" "s3_access_trail" {
+  #checkov:skip=CKV_AWS_252:Este CloudTrail solo captura eventos S3 y no requiere SNS
   name                          = "cineagile-front-trail"
   s3_bucket_name                = aws_s3_bucket.frontend_bucket.bucket
   cloud_watch_logs_group_arn    = aws_cloudwatch_log_group.frontend_access_logs.arn
@@ -140,7 +141,7 @@ resource "aws_cloudtrail" "s3_access_trail" {
   is_multi_region_trail         = true #CKV_AWS-67 (Ensure CloudTrail is enabled in all Regions)
   enable_logging                = true
   enable_log_file_validation    = true #CKV_AWS-36 (Ensure CloudTrail log file validation is enabled)
-
+  
   event_selector {
     read_write_type           = "All"
     include_management_events = true
