@@ -68,7 +68,6 @@ pipeline {
                         pwd
                     '''
                 }
-                stash name: 'tfstate', includes: 'iac/terraform.tfstates'
             }
         }
 
@@ -76,7 +75,6 @@ pipeline {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
-                unstash 'tfstate'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
@@ -133,7 +131,19 @@ pipeline {
                             -auto-approve -var-file=dev.tfvars
                     '''
                 }
-                stash name: 'tfstate', includes: 'terraform.tfstate'
+                stash name: 'source', includes: '**/*'
+            }
+            post {
+                failure {
+                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                        dir('iac') {
+                            sh '''
+                                terraform destroy -auto-approve -var-file=dev.tfvars
+                            '''
+                        }
+                    }
+                }
             }
         }
 
@@ -141,12 +151,23 @@ pipeline {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
-                unstash 'tfstate'
                 sh '''
                     for i in {1..10}; do
                     dig +nocmd +noall +answer api.cineagile.com @8.8.8.8
                     done
                 '''
+            }
+            post {
+                failure {
+                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                        dir('iac') {
+                            sh '''
+                                terraform destroy -auto-approve -var-file=dev.tfvars
+                            '''
+                        }
+                    }
+                }
             }
         }
 
@@ -154,14 +175,12 @@ pipeline {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
-                unstash 'tfstate'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
                         terraform destroy
                     '''
                 }
-                stash name: 'tfstate', includes: 'terraform.tfstate'
             }
         }
 
@@ -169,7 +188,6 @@ pipeline {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
-                unstash 'tfstate'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
@@ -177,7 +195,19 @@ pipeline {
                         terraform apply -target=aws_route53_zone.main -auto-approve -var-file=qa.tfvars
                     '''
                 }
-                stash name: 'tfstate', includes: 'terraform.tfstate'
+                stash name: 'source', includes: '**/*'
+            }
+            post {
+                failure {
+                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                        dir('iac') {
+                            sh '''
+                                terraform destroy -auto-approve -var-file=dev.tfvars
+                            '''
+                        }
+                    }
+                }
             }
         }
 
@@ -185,7 +215,6 @@ pipeline {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
-                unstash 'tfstate'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
@@ -243,6 +272,18 @@ pipeline {
                     '''
                 }
                 stash name: 'tfstate', includes: 'terraform.tfstate'
+            }
+            post {
+                failure {
+                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    withCsredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                        dir('iac') {
+                            sh '''
+                                terraform destroy -auto-approve -var-file=dev.tfvars
+                            '''
+                        }
+                    }
+                }
             }
         }
 
@@ -305,6 +346,7 @@ pipeline {
         }
         failure {
             echo 'Error en el despliegue del Frontend. Revisa la etapa fallida.'
+
         }
     }
 }
