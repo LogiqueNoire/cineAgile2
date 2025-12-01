@@ -143,6 +143,10 @@ pipeline {
                             -var-file=dev.tfvars
                     '''
                 }
+                env.cloudfront_distribution_id = sh(
+                    script: "terraform output -raw cloudfront_distribution_id",
+                    returnStdout: true
+                ).trim()
                 stash name: 'source', includes: '**/*'
             }
             post {
@@ -159,6 +163,18 @@ pipeline {
             }
         }
 
+        stage('Invalidate Cache (CloudFront)') {
+            agent { label 'terraform' }
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                    echo "Invalidando caché de CloudFront ID: ${env.cloudfront_distribution_id}"
+                    sh '''
+                        aws cloudfront create-invalidation --distribution-id $cloudfront_distribution_id --paths "/*"
+                    '''
+                }
+            }
+        }
+
         stage('A4. Prueba de integración de 1 sol') {
             agent { label 'terraform' }
             steps {
@@ -168,18 +184,6 @@ pipeline {
                     dig +nocmd +noall +answer api.cineagile.com @8.8.8.8
                     done
                 '''
-            }
-            post {
-                failure {
-                    echo "❌ El apply falló. Ejecutando terraform destroy…"
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                        dir('iac') {
-                            sh '''
-                                terraform destroy -auto-approve -var-file=dev.tfvars
-                            '''
-                        }
-                    }
-                }
             }
         }
 
@@ -215,7 +219,7 @@ pipeline {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                         dir('iac') {
                             sh '''
-                                terraform destroy -auto-approve -var-file=dev.tfvars
+                                terraform destroy -auto-approve -var-file=qa.tfvars
                             '''
                         }
                     }
@@ -291,7 +295,7 @@ pipeline {
                     withCsredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                         dir('iac') {
                             sh '''
-                                terraform destroy -auto-approve -var-file=dev.tfvars
+                                terraform destroy -auto-approve -var-file=qa.tfvars
                             '''
                         }
                     }
@@ -331,24 +335,32 @@ pipeline {
             }
         }
 
-        // stage('Invalidate Cache (CloudFront)') {
-        //     agent { label 'aws' }
-        //     steps {
-        //         withCredentials([
-        //             usernamePassword(
-        //                 credentialsId: 'aws-credentials-id',
-        //                 usernameVariable: 'AWS_ACCESS_KEY_ID',
-        //                 passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-        //             )
-        //         ]) {
-        //             echo "Invalidando caché de CloudFront ID: ${env.CLOUDFRONT_ID}"
-        //             sh '''
-        //                 aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths "/*"
-        //             '''
-        //         }
-        //     }
-        // }
-
+        stage('A9.1. Despliegue en qa: crear la zona Route 53 (segundos) (Cambiar dns en godaddy)') {
+            agent { label 'terraform' }
+            steps {
+                unstash 'source'
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                    sh '''
+                        cd iac
+                        terraform init
+                        terraform apply -target=aws_route53_zone.main -auto-approve -var-file=qa.tfvars
+                    '''
+                }
+                stash name: 'source', includes: '**/*'
+            }
+            post {
+                failure {
+                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                        dir('iac') {
+                            sh '''
+                                terraform destroy -auto-approve -var-file=qa.tfvars
+                            '''
+                        }
+                    }
+                }
+            }
+        }
 
     }
 
