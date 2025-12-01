@@ -68,7 +68,7 @@ pipeline {
                         pwd
                     '''
                 }
-                stash name: 'tfstate', includes: 'iac/iac/terraform.tfstate'
+                stash name: 'tfstate', includes: 'iac/terraform.tfstates'
             }
         }
 
