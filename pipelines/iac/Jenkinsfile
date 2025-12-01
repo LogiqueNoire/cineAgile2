@@ -68,8 +68,8 @@ pipeline {
                         pwd
                     '''
                 }
+                stash name: 'source', includes: '**/*'
             }
-            stash name: 'source', includes: '**/*'
         }
 
         stage('A3.2. Terminar el despliegue en dev') {
