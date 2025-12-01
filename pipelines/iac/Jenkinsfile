@@ -69,6 +69,7 @@ pipeline {
                     '''
                 }
             }
+            stash name: 'source', includes: '**/*'
         }
 
         stage('A3.2. Terminar el despliegue en dev') {
@@ -129,6 +130,17 @@ pipeline {
                             -target=aws_iam_role.firehose_role \
                             -target=aws_s3_bucket.waf_logs_s3
                             -auto-approve -var-file=dev.tfvars
+                        
+                        echo "Cloudfront"
+                        terraform apply \
+                            -target=aws_cloudwatch_log_group.frontend_access_logs \
+                            -target=aws_iam_role.s3_to_cloudwatch_role \
+                            -target=aws_iam_role_policy.s3_to_cloudwatch_policy \
+                            -target=aws_cloudtrail.s3_access_trail \
+                            -target=aws_route53_health_check.mi_servicio \
+                            -target=aws_cloudwatch_dashboard.dashboard_cliente \
+                            -auto-approve \
+                            -var-file=dev.tfvars
                     '''
                 }
                 stash name: 'source', includes: '**/*'
