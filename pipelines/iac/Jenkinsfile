@@ -33,9 +33,7 @@ pipeline {
                     terraform fmt -check
                     terraform init -backend=false
                     terraform validate
-                    ls
                 '''
-                stash name: 'tfstate', includes: 'terraform.tfstate'
             }
         }
 
@@ -44,7 +42,6 @@ pipeline {
 
             steps {
                 unstash 'source'
-                unstash 'tfstate'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
@@ -53,10 +50,8 @@ pipeline {
                         terraform init
                         terraform plan -var-file=dev.tfvars -out=tfplan > plan.out
                         tail -n 10 plan.out
-                        ls
                     '''
                 }
-                stash name: 'tfstate', includes: 'terraform.tfstate'
             }
         }
 
@@ -64,7 +59,6 @@ pipeline {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
-                unstash 'tfstate'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
