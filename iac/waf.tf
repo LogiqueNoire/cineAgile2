@@ -140,8 +140,8 @@ resource "aws_iam_role_policy" "firehose_policy" {
       ]
       Resource = [
         module.waf_logs.bucket_arn,
-      "${module.waf_logs.bucket_arn}/*"
-]
+        "${module.waf_logs.bucket_arn}/*"
+      ]
 
     }]
   })
@@ -152,8 +152,8 @@ resource "aws_kinesis_firehose_delivery_stream" "waf_acl" {
   destination = "extended_s3"
 
   extended_s3_configuration {
-    role_arn           = aws_iam_role.firehose_role.arn
-    bucket_arn         = module.waf_logs.bucket_arn
+    role_arn   = aws_iam_role.firehose_role.arn
+    bucket_arn = module.waf_logs.bucket_arn
 
     compression_format = "GZIP"
     buffering_size     = 5
