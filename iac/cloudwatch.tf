@@ -2,7 +2,45 @@
 resource "aws_cloudwatch_log_group" "route53_logs" {
   name              = "/aws/route53/cineagile"
   retention_in_days = 365   # AWS-338(Logs por 1 año)
+  kms_key_id = aws_kms_key.cloudwatch_key.arn #AWS_158 CIfrado kms
 }
+
+resource "aws_kms_key" "cloudwatch_key" {
+  description = "KMS key for CloudWatch Logs"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudWatchLogsUse"
+        Effect = "Allow"
+        Principal = {
+          Service = "logs.${var.region}.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      },
+
+      {
+        Sid       = "AllowRootAccountFullAccess"
+        Effect    = "Allow"
+        Principal = {
+           AWS = "arn:aws:iam::797606048152:root" 
+        }
+        Action    = "kms:*"
+        Resource  = "*"
+      }
+    ]
+  })
+}
+
+
 
 resource "aws_iam_role" "route53_logging_role" {
   name = "route53-logging-role"
@@ -55,6 +93,7 @@ resource "aws_route53_query_log" "main" {
 resource "aws_cloudwatch_log_group" "frontend_access_logs" {
   name              = "/aws/s3/cineagile-front/access"
   retention_in_days = 365 # Aws-338 (logs por 1 año)
+   kms_key_id = aws_kms_key.cloudwatch_key.arn #AWS_158 CIfrado kms
 }
 
 # --- 2. Rol para que S3 publique logs en CloudWatch ---
