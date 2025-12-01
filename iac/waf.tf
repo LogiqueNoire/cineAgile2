@@ -155,6 +155,6 @@ resource "aws_kinesis_firehose_delivery_stream" "waf_acl" {
   }
 
   server_side_encryption {
-    enabled = true  #aws_241
+    enabled = true #aws_241
   }
 }
