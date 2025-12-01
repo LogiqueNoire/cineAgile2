@@ -47,7 +47,7 @@ jenkins:
             remoteFs: "/home"
             instanceCapStr: 3
             dockerTemplateBase:
-              image: "logiquenoire/jenkins-agent-cineagile:terraform-1.0"
+              image: "logiquenoire/jenkins-agent-cineagile:terraform-1.1"
               tty: true
             retentionStrategy:
               idleMinutes: 5
@@ -95,7 +95,7 @@ credentials:
             secretKey: ${AWS_SECRET_KEY_ACCESS}
 jobs:
   - script: >
-      pipelineJob('iac') {
+      pipelineJob('first') {
         definition {
           cpsScm {
             scm {
@@ -110,22 +110,23 @@ jobs:
           }
         }
       }
-  - script: >
-      pipelineJob('back') {
-        definition {
-          cpsScm {
-            scm {
-              git {
-                branch('*/main')
-                remote {
-                  url('${REPOSITORY_URL}')
-                }
-              }
-            }
-            scriptPath('pipelines/backend/Jenkinsfile')
-          }
-        }
-      }
+  
+  # - script: >
+  #     pipelineJob('back') {
+  #       definition {
+  #         cpsScm {
+  #           scm {
+  #             git {
+  #               branch('*/main')
+  #               remote {
+  #                 url('${REPOSITORY_URL}')
+  #               }
+  #             }
+  #           }
+  #           scriptPath('pipelines/backend/Jenkinsfile')
+  #         }
+  #       }
+  #     }
 
 
 tool:

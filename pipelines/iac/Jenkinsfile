@@ -62,10 +62,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
-                        terraform init
                         terraform apply -target=aws_route53_zone.main -auto-approve -var-file=dev.tfvars
-                        ls
-                        pwd
                     '''
                 }
                 stash name: 'source', includes: '**/*'
@@ -79,7 +76,6 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
-                        terraform init
                         echo "Creando y validando el certificado SSL (2 min)"
                         terraform apply \
                             -target=aws_acm_certificate.cineagile_cert \
