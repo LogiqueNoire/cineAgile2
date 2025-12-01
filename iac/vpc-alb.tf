@@ -142,10 +142,10 @@ resource "aws_lb" "alb_us_east_1" {
   #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
 
   access_logs {
-  bucket  = module.alb_logs.bucket_id
-  enabled = true
-  prefix  = "cineagile-alb"
-}
+    bucket  = module.alb_logs.bucket_id
+    enabled = true
+    prefix  = "cineagile-alb"
+  }
 
 }
 
