@@ -153,4 +153,8 @@ resource "aws_kinesis_firehose_delivery_stream" "waf_acl" {
     buffering_size     = 5
     buffering_interval = 300
   }
+
+  server_side_encryption {
+    enabled = true  #aws_241
+  }
 }
