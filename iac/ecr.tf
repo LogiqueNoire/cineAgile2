@@ -1,6 +1,6 @@
 resource "aws_ecr_repository" "intranet" {
   name                 = "intranet"
-  image_tag_mutability = "INMUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -14,7 +14,7 @@ resource "aws_ecr_repository" "intranet" {
 
 resource "aws_ecr_repository" "venta" {
   name                 = "venta"
-  image_tag_mutability = "INMUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -28,7 +28,7 @@ resource "aws_ecr_repository" "venta" {
 
 resource "aws_ecr_repository" "tiempo" {
   name                 = "tiempo"
-  image_tag_mutability = "INMUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
