@@ -1,16 +1,16 @@
 variable "region" {
-    type = string
-    description = "Region of AWS"
+  type        = string
+  description = "Region of AWS"
 }
 
 variable "region_secondary" {
-  type = string
+  type        = string
   description = "Region of AWS"
 }
 
 variable "bucket_nombre" {
-    type = string
-    description = "Region of AWS"
+  type        = string
+  description = "Region of AWS"
 }
 
 variable "dominio_nombre" {
@@ -19,9 +19,9 @@ variable "dominio_nombre" {
 }
 
 variable "sub_dominio_www" {
-  type        = string
+  type = string
 }
 
 variable "sub_dominio_api" {
-  type        = string
+  type = string
 }

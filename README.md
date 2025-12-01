@@ -4,10 +4,10 @@ CineAgile es una cadena peruana de cines que ofrece servicios a nivel nacional. 
 
 
 
-<img width="2769" height="1677" alt="iac borrador - Page 2" src="https://github.com/user-attachments/assets/72c423e2-c978-4a1f-9643-220a9e90b301" />
+
 
 Diagrama de arquitectura propuesto
-
+<img width="1869" height="1285" alt="IAC agiles - PARTE 2 horizontal" src="https://github.com/user-attachments/assets/3df753b0-a270-4a2d-995a-6dc90ba43002" />
 
 A pesar de su crecimiento a nivel nacional, la plataforma digital de CineAgile sufre de caídas constantes y una severa degradación del rendimiento durante los eventos de mayor demanda, como los estrenos de películas taquilleras (ej. estrenos de Marvel, sagas populares o cintas peruanas muy esperadas) y los fines de semana con promociones especiales.
 
@@ -21,9 +21,10 @@ El sistema es vulnerable a fallos técnicos menores. La caída de un solo servid
 
 Durante el lanzamiento de la preventa de una película popular, miles de usuarios intentan acceder a la aplicación simultáneamente para comprar sus entradas. La arquitectura actual no puede gestionar este volumen de peticiones, lo que provoca que el sistema colapse, la página de compra de entradas no cargue o las transacciones fallen a mitad del proceso. Se pierden miles de ventas en las primeras horas, que son las más críticas. Los clientes frustrados abandonan la compra y acuden a la competencia directa (como Cinemark o Cineplanet), lo que resulta en una pérdida de ingresos directa y un daño irreparable a la imagen de la marca, siendo catalogados en redes sociales como un servicio "caído" o poco fiable. Los periodos picos son durante las fechas de preventa y estreno.
 
-El proyecto se puede desplegar mediante
-terraform init
-terraform plan
-terraform apply
+Para ejecutar el despliegue,
+1 Ejecutar el comando docker-compose up -d --build desde /jenkins
+2 Entrar a la interfaz de jenkins en localhost:8080
+3 El usuario y contraseña son admin
+4 Ejecutar el pipeline principal
+![WhatsApp Image 2025-12-01 at 12 37 41 AM](https://github.com/user-attachments/assets/556f2286-1396-41bb-81cb-260aff870ea2)
 
-Para la integración continúa de pueden ejecutar los jenkisfiles configurando las credenciales de usuario de aws, el repo de elastic container registry y la region de aws.

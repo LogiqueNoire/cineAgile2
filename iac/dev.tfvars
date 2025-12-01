@@ -1,6 +1,7 @@
-region  =   "us-east-2"
+region           = "us-east-2"
 region_secondary = "us-east-1"
-bucket_nombre  =   "cineagilefront"
-dominio_nombre = "cineagile.com"
-sub_dominio_www = "www.cineagile.com"
-sub_dominio_api = "api.cineagile.com"
+bucket_nombre    = "cineagilefrontdev"
+dominio_nombre   = "dev.cineagile.com"
+sub_dominio_www  = "www.dev.cineagile.com"
+sub_dominio_api  = "api.dev.cineagile.com"
+

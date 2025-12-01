@@ -129,7 +129,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_bucket_lifecycle" {
     }
 
     abort_incomplete_multipart_upload {
-      days_after_initiation = 7  #CKV_AWS_300 Ensure S3 lifecycle configuration sets period for aborting failed uploads
+      days_after_initiation = 7 #CKV_AWS_300 Ensure S3 lifecycle configuration sets period for aborting failed uploads
     }
 
     expiration {
@@ -151,7 +151,7 @@ resource "aws_s3_bucket_public_access_block" "bucket_block" {
 resource "aws_s3_bucket_versioning" "versioning_block" {
   bucket = aws_s3_bucket.log_bucket.id
 
- versioning_configuration {
+  versioning_configuration {
     status = "Enabled"
   }
 }

@@ -40,36 +40,28 @@ jenkins:
             connector:
               attach:
                 user: "jenkins"
-
-          # === Agente Jenkins inbound (genérico) ===
-          - name: "docker-agent2"
-            labelString: "docker2"
-            remoteFs: "/home/jenkins"
-            instanceCapStr: 5
+          
+          # === Agente Terraform ===
+          - name: "terraform-agent"
+            labelString: "terraform"
+            remoteFs: "/home"
+            instanceCapStr: 3
             dockerTemplateBase:
-              image: "jenkins/inbound-agent:alpine3.22-jdk21"
+              image: "logiquenoire/jenkins-agent-cineagile:terraform-1.0"
               tty: true
             retentionStrategy:
-              idleMinutes: 10
-
-          # === Agente Git ===
-          - name: "docker-agent3"
-            labelString: "docker4"
-            remoteFs: "/home/jenkins"
-            instanceCapStr: 5
-            dockerTemplateBase:
-              image: "alpine/git:2.49.1"
-              tty: true
-            retentionStrategy:
-              idleMinutes: 1
+              idleMinutes: 5
+            connector:
+              attach:
+                user: "root"
 
           # === Agente NodeJS ===
           - name: "node-agent"
             labelString: "node"
-            remoteFs: "/home/node"
+            remoteFs: "/home"
             instanceCapStr: 3
             dockerTemplateBase:
-              image: "node:iron-alpine3.22"
+              image: "logiquenoire/jenkins-agent-cineagile:node-1.0"
               tty: true
             retentionStrategy:
               idleMinutes: 5
@@ -91,19 +83,7 @@ jenkins:
               attach:
                 user: "jenkins"
 
-          # === Agente Terraform ===
-          - name: "terraform-agent"
-            labelString: "terraform"
-            remoteFs: "/home"
-            instanceCapStr: 3
-            dockerTemplateBase:
-              image: "logiquenoire/jenkins-agent-cineagile:1.0"
-              tty: true
-            retentionStrategy:
-              idleMinutes: 5
-            connector:
-              attach:
-                user: "root"
+          
 credentials:
   system:
     domainCredentials:
@@ -112,7 +92,7 @@ credentials:
             scope: GLOBAL
             id: "aws_credentials"
             accessKey: ${AWS_ACCESS_KEY_ID}
-            secretKey: AWS_SECREY_KEY_ACCESS
+            secretKey: ${AWS_SECRET_KEY_ACCESS}
 jobs:
   - script: >
       pipelineJob('iac') {

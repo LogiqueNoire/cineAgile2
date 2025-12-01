@@ -1,21 +1,21 @@
 //module: coleccion de recursos
 module "vpc_back_1_us_east_2" {
-  source          = "github.com/terraform-aws-modules/terraform-aws-vpc?ref=efcac80"
+  source = "github.com/terraform-aws-modules/terraform-aws-vpc?ref=efcac80"
   # solucionado CKV_TF_1
   # source  = "terraform-aws-modules/vpc/aws"
   # version = "6.3.0"
   //https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
 
-  name                 = "vpc_back_1_us_east_2"
-  cidr                 = "10.1.0.0/16"
+  name = "vpc_back_1_us_east_2"
+  cidr = "10.1.0.0/16"
   //ditribuir subredes
-  azs                  = data.aws_availability_zones.available_use2.names
-  private_subnets      = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
-  public_subnets       = ["10.1.4.0/24", "10.1.5.0/24", "10.1.6.0/24"]
+  azs             = data.aws_availability_zones.available_use2.names
+  private_subnets = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
+  public_subnets  = ["10.1.4.0/24", "10.1.5.0/24", "10.1.6.0/24"]
   //para acceder a los nodos de eks en las subredes privadas
-  enable_nat_gateway   = true
+  enable_nat_gateway = true
   //una sola nat gateway
-  single_nat_gateway   = true
+  single_nat_gateway = true
   ////cambiar a api????
   enable_dns_hostnames = true
 
@@ -35,7 +35,7 @@ module "vpc_back_1_us_east_2" {
 }
 
 module "vpc_back_2_us_east_1" {
-  source          = "github.com/terraform-aws-modules/terraform-aws-vpc?ref=efcac80"
+  source = "github.com/terraform-aws-modules/terraform-aws-vpc?ref=efcac80"
   # solucionado CKV_TF_1
   # source  = "terraform-aws-modules/vpc/aws"
   # version = "6.3.0"
@@ -44,16 +44,16 @@ module "vpc_back_2_us_east_1" {
     aws = aws.use1
   }
 
-  name                 = "vpc_back_2_us_east_1"
-  cidr                 = "10.2.0.0/16"
+  name = "vpc_back_2_us_east_1"
+  cidr = "10.2.0.0/16"
   //ditribuir subredes
-  azs                  = data.aws_availability_zones.available_use1.names
-  private_subnets      = ["10.2.1.0/24", "10.2.2.0/24", "10.2.3.0/24"]
-  public_subnets       = ["10.2.4.0/24", "10.2.5.0/24", "10.2.6.0/24"]
+  azs             = data.aws_availability_zones.available_use1.names
+  private_subnets = ["10.2.1.0/24", "10.2.2.0/24", "10.2.3.0/24"]
+  public_subnets  = ["10.2.4.0/24", "10.2.5.0/24", "10.2.6.0/24"]
 
-  enable_nat_gateway   = true
+  enable_nat_gateway = true
 
-  single_nat_gateway   = true
+  single_nat_gateway = true
 
   enable_dns_hostnames = true
 
@@ -63,33 +63,33 @@ module "vpc_back_2_us_east_1" {
 
   public_subnet_tags = {
     "kubernetes.io/cluster/${local.cluster_name_2}" = "shared"
-    "kubernetes.io/role/elb"                      = "1"
+    "kubernetes.io/role/elb"                        = "1"
   }
 
   private_subnet_tags = {
     "kubernetes.io/cluster/${local.cluster_name_2}" = "shared"
-    "kubernetes.io/role/internal-elb"             = "1"
+    "kubernetes.io/role/internal-elb"               = "1"
   }
 }
 
 # Health checks
 resource "aws_route53_health_check" "alb_us_east_1" {
-  fqdn          = aws_lb.alb_us_east_1.dns_name
-  port          = 443
-  type          = "HTTPS"
-  resource_path = "/health"
-  failure_threshold = 3
-  request_interval  = 30
+  fqdn                            = aws_lb.alb_us_east_1.dns_name
+  port                            = 443
+  type                            = "HTTPS"
+  resource_path                   = "/health"
+  failure_threshold               = 3
+  request_interval                = 30
   insufficient_data_health_status = "Unhealthy"
 }
 
 resource "aws_route53_health_check" "alb_us_east_2" {
-  fqdn          = aws_lb.alb_us_east_2.dns_name
-  port          = 443
-  type          = "HTTPS"
-  resource_path = "/health"
-  failure_threshold = 3
-  request_interval  = 30
+  fqdn                            = aws_lb.alb_us_east_2.dns_name
+  port                            = 443
+  type                            = "HTTPS"
+  resource_path                   = "/health"
+  failure_threshold               = 3
+  request_interval                = 30
   insufficient_data_health_status = "Unhealthy"
 }
 
@@ -130,43 +130,43 @@ resource "aws_route53_record" "api_us_east_2" {
 
 
 resource "aws_lb" "alb_us_east_1" {
-  provider           = aws.use1
-  name               = "cineagile-alb-us-east-1"
-  load_balancer_type = "application"
-  internal           = false
-  security_groups    = [aws_security_group.alb_us_east_1.id]
-  subnets            = module.vpc_back_2_us_east_1.public_subnets
+  provider                   = aws.use1
+  name                       = "cineagile-alb-us-east-1"
+  load_balancer_type         = "application"
+  internal                   = false
+  security_groups            = [aws_security_group.alb_us_east_1.id]
+  subnets                    = module.vpc_back_2_us_east_1.public_subnets
   drop_invalid_header_fields = true #CKV_AWS_131 alb dropea headers hhtp
-  enable_deletion_protection = true  #CKV_AWS_150
+  enable_deletion_protection = true #CKV_AWS_150
 
   #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
-  
+
   access_logs {
-    bucket = aws_s3_bucket.alb_logs_s3.bucket
+    bucket  = aws_s3_bucket.alb_logs_s3.bucket
     enabled = true
-    prefix = "cineagile-alb"
+    prefix  = "cineagile-alb"
   }
 }
 
-  resource "aws_s3_bucket" "alb_logs_s3" {
-    bucket = "alb-logs-s3-agiles-25"
-  }
+resource "aws_s3_bucket" "alb_logs_s3" {
+  bucket = "alb-logs-s3-agiles-25"
+}
 
 resource "aws_lb" "alb_us_east_2" {
-  provider           = aws
-  name               = "cineagile-alb-us-east-2"
-  load_balancer_type = "application"
-  internal           = true
-  security_groups    = [aws_security_group.alb_us_east_2.id]
-  subnets            = module.vpc_back_1_us_east_2.public_subnets
+  provider                   = aws
+  name                       = "cineagile-alb-us-east-2"
+  load_balancer_type         = "application"
+  internal                   = true
+  security_groups            = [aws_security_group.alb_us_east_2.id]
+  subnets                    = module.vpc_back_1_us_east_2.public_subnets
   drop_invalid_header_fields = true #CKV_AWS_131 alb dropea headers hhtp
-  enable_deletion_protection = true  #CKV_AWS_150
+  enable_deletion_protection = true #CKV_AWS_150
 
-   #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
-    access_logs {
-    bucket = aws_s3_bucket.alb_logs_s3.bucket
+  #CKV_AWS_91 AWS Elastic Load Balancer v2 (ELBv2) with access log disabled
+  access_logs {
+    bucket  = aws_s3_bucket.alb_logs_s3.bucket
     enabled = true
-    prefix = "cineagile-alb"
+    prefix  = "cineagile-alb"
   }
 }
 
@@ -176,7 +176,7 @@ resource "aws_lb_target_group" "backend_us_east_1" {
   name     = "backend-tg-us-east-1"
   port     = 443
   protocol = "HTTPS"
-  vpc_id   = module.vpc_back_2_us_east_1.vpc_id 
+  vpc_id   = module.vpc_back_2_us_east_1.vpc_id
   health_check {
     path                = "/health"
     protocol            = "HTTPS"
@@ -191,7 +191,7 @@ resource "aws_lb_target_group" "backend_us_east_2" {
   name     = "backend-tg-us-east-2"
   port     = 443
   protocol = "HTTPS"
-  vpc_id   = module.vpc_back_1_us_east_2.vpc_id 
+  vpc_id   = module.vpc_back_1_us_east_2.vpc_id
   health_check {
     path                = "/health"
     protocol            = "HTTPS"
@@ -204,11 +204,11 @@ resource "aws_lb_target_group" "backend_us_east_2" {
 
 # --- Listener para ALB ---
 resource "aws_lb_listener" "https_us_east_1" {
-  provider = aws.use1
+  provider          = aws.use1
   load_balancer_arn = aws_lb.alb_us_east_1.arn
   port              = 443
   protocol          = "HTTPS"
-  ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01" #checkov CKV_AWS_103 > Activar TLS
+  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01" #checkov CKV_AWS_103 > Activar TLS
   certificate_arn   = aws_acm_certificate.cineagile_cert.arn
 
   default_action {

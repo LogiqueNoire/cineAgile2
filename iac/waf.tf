@@ -56,26 +56,26 @@ resource "aws_wafv2_web_acl" "waf_acl" {
   }
   #CKV_AWS_192: AGregar regla para proteccion LOg4j2
   rule {
-  name     = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
-  priority = 1
+    name     = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 1
 
-  override_action {
-    none {}
-  }
+    override_action {
+      none {}
+    }
 
-  statement {
-    managed_rule_group_statement {
-      name        = "AWSManagedRulesKnownBadInputsRuleSet"
-      vendor_name = "AWS"
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      sampled_requests_enabled   = true
+      metric_name                = "KnownBadInputs"
     }
   }
-
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    sampled_requests_enabled   = true
-    metric_name                = "KnownBadInputs"
-  }
-}
 
 
   visibility_config {
@@ -112,9 +112,9 @@ resource "aws_iam_role" "firehose_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
+      Effect    = "Allow"
       Principal = { Service = "firehose.amazonaws.com" }
-      Action = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }
