@@ -33,8 +33,9 @@ pipeline {
                     terraform fmt -check
                     terraform init -backend=false
                     terraform validate
+                    ls
                 '''
-                stash name: 'tfstate', includes: 'iac/terraform.tfstate'
+                stash name: 'tfstate', includes: 'terraform.tfstate'
             }
         }
 
@@ -54,7 +55,7 @@ pipeline {
                         tail -n 10 plan.out
                     '''
                 }
-                stash name: 'tfstate', includes: 'iac/terraform.tfstate'
+                stash name: 'tfstate', includes: 'terraform.tfstate'
             }
         }
 
