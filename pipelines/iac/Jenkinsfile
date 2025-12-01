@@ -171,6 +171,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     echo "Invalidando caché de CloudFront ID: ${env.cloudfront_distribution_id}"
                     sh '''
+                        aws --version
                         aws cloudfront create-invalidation --distribution-id $cloudfront_distribution_id --paths "/*"
                     '''
                 }
