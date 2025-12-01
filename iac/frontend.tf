@@ -170,7 +170,7 @@ resource "aws_s3_bucket_notification" "log_bucket_notification" {
     events        = ["s3:ObjectCreated:*"]
     filter_prefix = "logs/"
   }
-} 
+}
 
 
 #"Dueño" del bucket

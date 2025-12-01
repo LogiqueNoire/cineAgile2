@@ -141,7 +141,7 @@ resource "aws_cloudtrail" "s3_access_trail" {
   is_multi_region_trail         = true #CKV_AWS-67 (Ensure CloudTrail is enabled in all Regions)
   enable_logging                = true
   enable_log_file_validation    = true #CKV_AWS-36 (Ensure CloudTrail log file validation is enabled)
-  
+
   event_selector {
     read_write_type           = "All"
     include_management_events = true
