@@ -62,6 +62,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
+                        terraform init
                         terraform apply -target=aws_route53_zone.main -auto-approve -var-file=dev.tfvars
                     '''
                 }
