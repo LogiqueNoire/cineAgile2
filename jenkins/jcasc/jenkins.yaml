@@ -73,6 +73,9 @@ jenkins:
               tty: true
             retentionStrategy:
               idleMinutes: 5
+            connector:
+              attach:
+                user: "root"
 
           # === Agente AWS CLI ===
           - name: "aws-agent"
@@ -91,41 +94,16 @@ jenkins:
           # === Agente Terraform ===
           - name: "terraform-agent"
             labelString: "terraform"
-            remoteFs: "/home/terraform"
+            remoteFs: "/home"
             instanceCapStr: 3
             dockerTemplateBase:
-              image: "hashicorp/terraform:1.14"
+              image: "logiquenoire/jenkins-agent-cineagile:1.0"
               tty: true
             retentionStrategy:
               idleMinutes: 5
             connector:
               attach:
-                user: "jenkins"
-# jobs:
-#   - script: >
-#       pipelineJob('front2') {
-#         definition {
-#           cpsScm {
-#             scm {
-#               git {
-#                 branch('*/main')
-#                 remote {
-#                   url('${REPOSITORY_URL}')
-#                 }
-#               }
-#             }
-#             scriptPath('pipelines/frontend/Jenkinsfile')
-#           }
-#         }
-#       }
-
-
-tool:
-  git:
-    installations:
-      - name: git
-        home: /usr/bin/git
-
+                user: "root"
 credentials:
   system:
     domainCredentials:
@@ -134,4 +112,45 @@ credentials:
             scope: GLOBAL
             id: "aws_credentials"
             accessKey: ${AWS_ACCESS_KEY_ID}
-            secretKey: ${AWS_SECREY_KEY_ACCESS}
+            secretKey: AWS_SECREY_KEY_ACCESS
+jobs:
+  - script: >
+      pipelineJob('iac') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                branch('*/main')
+                remote {
+                  url('${REPOSITORY_URL}')
+                }
+              }
+            }
+            scriptPath('pipelines/iac/Jenkinsfile')
+          }
+        }
+      }
+  - script: >
+      pipelineJob('back') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                branch('*/main')
+                remote {
+                  url('${REPOSITORY_URL}')
+                }
+              }
+            }
+            scriptPath('pipelines/backend/Jenkinsfile')
+          }
+        }
+      }
+
+
+tool:
+  git:
+    installations:
+      - name: git
+        home: /usr/bin/git
+
