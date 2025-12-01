@@ -143,11 +143,13 @@ pipeline {
                             -var-file=dev.tfvars
                     '''
                 }
-                env.cloudfront_distribution_id = sh(
-                    script: "terraform output -raw cloudfront_distribution_id",
-                    returnStdout: true
-                ).trim()
-                stash name: 'source', includes: '**/*'
+                script {
+                    env.cloudfront_distribution_id = sh(
+                        script: "cd iac && terraform output -raw cloudfront_distribution_id",
+                        returnStdout: true
+                    ).trim()
+                    stash name: 'source', includes: '**/*'
+                }
             }
             post {
                 failure {
