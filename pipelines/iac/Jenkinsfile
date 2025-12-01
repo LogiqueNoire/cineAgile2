@@ -53,6 +53,7 @@ pipeline {
                         terraform init
                         terraform plan -var-file=dev.tfvars -out=tfplan > plan.out
                         tail -n 10 plan.out
+                        ls
                     '''
                 }
                 stash name: 'tfstate', includes: 'terraform.tfstate'
