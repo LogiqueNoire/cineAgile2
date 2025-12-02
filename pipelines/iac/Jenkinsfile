@@ -43,7 +43,7 @@ pipeline {
                         terraform workspace list
                         terraform workspace select dev
                         checkov --directory . -o junitxml --soft-fail --output-file-path results.xml
-                        terraform plan -var-file=dev.tfvars -out=tfplan > plan.out
+                        terraform plan -var-file=dev.auto.tfvars -out=tfplan > plan.out
                         tail -n 10 plan.out
                     '''
                 }
@@ -58,7 +58,7 @@ pipeline {
                     sh '''
                         cd iac
                         terraform init
-                        terraform apply -target=aws_route53_zone.main -auto-approve -var-file=dev.tfvars
+                        terraform apply -target=aws_route53_zone.main -auto-approve -var-file=dev.auto.tfvars
                     '''
                 }
                 stash name: 'source', includes: '**/*'
@@ -77,14 +77,14 @@ pipeline {
                             -target=aws_acm_certificate.cineagile_cert \
                             -target=aws_route53_record.cineagile_cert_validation \
                             -target=aws_acm_certificate_validation.cineagile_cert_validation \
-                            -auto-approve -var-file=dev.tfvars
+                            -auto-approve -var-file=dev.auto.tfvars
                         echo "Crear el bucket S3 y su configuración (rápido, segundos)"
                         terraform apply \
                             -target=aws_s3_bucket.frontend_bucket \
                             -target=aws_s3_bucket_server_side_encryption_configuration.frontend_encryption \
                             -target=aws_s3_bucket_website_configuration.website_config \
                             -target=aws_s3_bucket_public_access_block.block_public_access \
-                            -auto-approve -var-file=dev.tfvars
+                            -auto-approve -var-file=dev.auto.tfvars
                         echo "Crear CloudFront + OAC + política del bucket (5 min ejecución)"
                         terraform apply \
                             -target=aws_cloudfront_origin_access_control.oac \
@@ -97,7 +97,7 @@ pipeline {
                         terraform apply \
                             -target=aws_route53_record.root_domain \
                             -target=aws_route53_record.www_domain \
-                            -auto-approve -var-file=dev.tfvars
+                            -auto-approve -var-file=dev.auto.tfvars
                         echo "Preparando conexión global"
                         terraform apply \
                             -target=module.vpc_back_1_us_east_2 \
