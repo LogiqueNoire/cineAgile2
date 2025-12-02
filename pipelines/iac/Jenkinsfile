@@ -5,16 +5,6 @@ pipeline {
         skipDefaultCheckout()
     }
 
-    // parameters {
-    //     string(name: 'FRONTEND_BUCKET', defaultValue: 'cineagile-front3', description: 'Nombre del bucket S3 del frontend')
-    //     string(name: 'CLOUDFRONT_ID', defaultValue: 'E2X8AWNAQTG3LI', description: 'ID de la distribución CloudFront')
-    // }
-
-    environment {
-        FRONTEND_DIST   = 'dist'
-        AWS_DEFAULT_REGION = 'us-east-1' // Ajusta según tu región
-    }
-
     stages {
         stage('Checkout') {
             agent { label 'docker' }
@@ -45,7 +35,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
-                        terraform workspace new dev
+                        terraform login 
                         terraform workspace select dev
                         terraform init
                         terraform plan -var-file=dev.tfvars -out=tfplan > plan.out
@@ -150,7 +140,7 @@ pipeline {
             }
             post {
                 failure {
-                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    echo "El apply falló. Ejecutando terraform destroy…"
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                         dir('iac') {
                             sh '''
@@ -215,7 +205,7 @@ pipeline {
             }
             post {
                 failure {
-                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    echo "El apply falló. Ejecutando terraform destroy…"
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                         dir('iac') {
                             sh '''
@@ -291,7 +281,7 @@ pipeline {
             }
             post {
                 failure {
-                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    echo "El apply falló. Ejecutando terraform destroy…"
                     withCsredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                         dir('iac') {
                             sh '''
@@ -350,7 +340,7 @@ pipeline {
             }
             post {
                 failure {
-                    echo "❌ El apply falló. Ejecutando terraform destroy…"
+                    echo "El apply falló. Ejecutando terraform destroy…"
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                         dir('iac') {
                             sh '''
