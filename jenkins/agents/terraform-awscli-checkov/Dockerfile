@@ -11,3 +11,7 @@ RUN curl -fsSL https://releases.hashicorp.com/terraform/1.14.0/terraform_1.14.0_
     && rm terraform.zip
 
 USER jenkins
+
+RUN pip install --break-system-packages --no-cache-dir checkov
+
+ENV PATH=$PATH:/home/jenkins/.local/bin
