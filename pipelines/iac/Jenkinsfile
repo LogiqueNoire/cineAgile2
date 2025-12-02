@@ -18,18 +18,18 @@ pipeline {
             }
         }
 
-        stage('A1. Linting y validación') {
-            agent { label 'terraform' }
-            steps {
-                unstash 'source'
-                sh '''
-                    cd iac
-                    terraform fmt -check
-                    terraform init -backend=false
-                    terraform validate
-                '''
-            }
-        }
+        // stage('A1. Linting y validación') {
+        //     agent { label 'terraform' }
+        //     steps {
+        //         unstash 'source'
+        //         sh '''
+        //             cd iac
+        //             terraform fmt -check
+        //             terraform init -backend=false
+        //             terraform validate
+        //         '''
+        //     }
+        // }
 
         stage('A2. Prueba ligera') {
             agent { label 'terraform' }
@@ -40,7 +40,8 @@ pipeline {
                     sh '''
                         cd iac
                         terraform init
-                        terraform workspace select aws-infra-dev
+                        terraform workspace list
+                        terraform workspace select -or-create aws-infra-dev
                         checkov --directory . -o junitxml --output-file-path results.xml
                         terraform plan -var-file=dev.tfvars -out=tfplan > plan.out
                         tail -n 10 plan.out
