@@ -45,7 +45,7 @@ pipeline {
             }
         }
 
-        stage('A3.1. Despliegue en dev: crear la zona Route 53 (segundos) (Cambiar dns en godaddy)') {
+        stage('A3.1. Despliegue en dev: crear zona Route 53 (Cambiar dns godaddy)') {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
@@ -190,7 +190,7 @@ pipeline {
             }
         }
 
-        stage('A6.1. Despliegue en qa: crear la zona Route 53 (segundos) (Cambiar dns en godaddy)') {
+        stage('A6.1. Despliegue en qa: crear zona Route 53 (Cambiar dns godaddy)') {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
@@ -325,7 +325,7 @@ pipeline {
             }
         }
 
-        stage('A9.1. Despliegue en qa: crear la zona Route 53 (segundos) (Cambiar dns en godaddy)') {
+        stage('A9.1. Despliegue en prod: crear zona Route 53 (Cambiar dns en godaddy)') {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
@@ -333,7 +333,7 @@ pipeline {
                     sh '''
                         cd iac
                         terraform init
-                        terraform apply -target=aws_route53_zone.main -auto-approve -var-file=qa.tfvars
+                        terraform apply -target=aws_route53_zone.main -auto-approve -var-file=prod.tfvars
                     '''
                 }
                 stash name: 'source', includes: '**/*'
@@ -351,6 +351,17 @@ pipeline {
                 }
             }
         }
+
+        // stage('Run Playbook Dev') {
+        //     agent { label 'ansible' }
+        //     steps {
+        //         sh '''
+        //         ansible-playbook \
+        //             -i ansible/inventory/dev \
+        //             ansible/playbooks/deploy_app.yml
+        //         '''
+        //     }
+        // }
 
     }
 
