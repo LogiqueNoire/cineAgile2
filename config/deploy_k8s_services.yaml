@@ -1,86 +1,62 @@
 ---
-- name: Despliegue Consolidado de Microservicios (Venta, Tiempo, Intranet)
-  #ansible-playbook deploy_all_microservices.yml
+- name: Despliegue Consolidado de Microservicios
   hosts: localhost
   connection: local
   gather_facts: no
+
+  vars:
+    microservicios:
+      - name: venta-api
+        image: "{{ lookup('env', 'VENTA_IMAGE') }}"
+        port: 8080
+        replicas: 3
+
+      - name: tiempo-api
+        image: "{{ lookup('env', 'TIEMPO_IMAGE') }}"
+        port: 8081
+        replicas: 2
+
+      - name: intranet-api
+        image: "{{ lookup('env', 'INTRANET_IMAGE') }}"
+        port: 8080
+        replicas: 3
+
   tasks:
-    - name: Aplicar Deployment y Service para los 3 Microservicios
+    - name: Aplicar Deployment y Service
       kubernetes.core.k8s:
-        state: present # Asegura que los recursos existan y se mantengan actualizados
-        # El bloque 'definition' acepta todo el YAML consolidado
+        state: present
         definition: |
-          # ====================================================================
-          # 1. SERVICIO: VENTA-API
-          # ====================================================================
-          apiVersion: api/v1
-          kind: Deployment
-          metadata:
-            name: venta-api
-            labels:
-              app: venta-api
-          spec:
-            # 3 Réplicas para HA en las 3 AZs
-            replicas: 3 
-            selector:
-              matchLabels:
-                app: venta-api
-            template:
-              metadata:
-                labels:
-                  app: venta-api
-              spec:
-                containers:
-                - name: venta-container
-                  797606048152.dkr.ecr.us-east-2.amazonaws.com/microservicio-intranet:30
-                  ports:
-                  - containerPort: 8080
-          ---
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: venta-api
-          spec:
-            type: ClusterIP
-            selector:
-              app: venta-api
-            ports:
-            - port: 80
-              targetPort: 8080 
-          ---
-          # ====================================================================
-          # 2. SERVICIO: INTRANET
-          # ====================================================================
           apiVersion: apps/v1
           kind: Deployment
           metadata:
-            name: intranet-api
+            name: {{ item.name }}
             labels:
-              app: intranet-api
+              app: {{ item.name }}
           spec:
-            replicas: 3 # 3 Réplicas para HA en las 3 AZs
+            replicas: {{ item.replicas }}
             selector:
               matchLabels:
-                app: intranet-api
+                app: {{ item.name }}
             template:
               metadata:
                 labels:
-                  app: intranet-api
+                  app: {{ item.name }}
               spec:
                 containers:
-                - name: intranet-container
-                  image: 797606048152.dkr.ecr.us-east-2.amazonaws.com/microservicio-intranet:30
+                - name: {{ item.name }}-container
+                  image: {{ item.image }}
                   ports:
-                  - containerPort: 9000
+                  - containerPort: {{ item.port }}
           ---
           apiVersion: v1
           kind: Service
           metadata:
-            name: intranet-api
+            name: {{ item.name }}
           spec:
             type: ClusterIP
             selector:
-              app: intranet-api
+              app: {{ item.name }}
             ports:
             - port: 80
-              targetPort: 9000
+              targetPort: {{ item.port }}
+      loop: "{{ microservicios }}"

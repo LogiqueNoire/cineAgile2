@@ -95,7 +95,7 @@ credentials:
             secretKey: ${AWS_SECRET_KEY_ACCESS}
 jobs:
   - script: >
-      pipelineJob('first') {
+      pipelineJob('prueba') {
         definition {
           cpsScm {
             scm {
