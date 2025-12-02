@@ -93,6 +93,10 @@ credentials:
             id: "aws_credentials"
             accessKey: ${AWS_ACCESS_KEY_ID}
             secretKey: ${AWS_SECRET_KEY_ACCESS}
+        - string:
+            scope: GLOBAL
+            id: "TFC_TOKEN"
+            secret: "${TFC_TOKEN}"
 jobs:
   - script: >
       pipelineJob('prueba') {
