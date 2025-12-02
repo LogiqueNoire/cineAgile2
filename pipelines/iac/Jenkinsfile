@@ -40,7 +40,7 @@ pipeline {
                     sh '''
                         cd iac
                         terraform init
-                        terraform workspace select dev
+                        terraform workspace select aws-infra-dev
                         checkov --directory . -o junitxml --output-file-path results.xml
                         terraform plan -var-file=dev.tfvars -out=tfplan > plan.out
                         tail -n 10 plan.out

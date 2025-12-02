@@ -4,7 +4,7 @@ terraform {
     organization = "cineagile"
 
     workspaces {
-      name = "aws-infra-dev"
+      prefix = "aws-infra-"
     }
   }
 }
