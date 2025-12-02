@@ -39,7 +39,7 @@ pipeline {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     sh '''
                         cd iac
-                        terraform login
+                        terraform login -auto-approve
                         terraform workspace select dev
                         terraform init
                         checkov --directory . -o junitxml --output-file-path results.xml
