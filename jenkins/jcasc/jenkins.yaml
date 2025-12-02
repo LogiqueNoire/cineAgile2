@@ -41,13 +41,13 @@ jenkins:
               attach:
                 user: "jenkins"
           
-          # === Agente Terraform ===
+          # === Agente Terraform AWSCLI Checkov ===
           - name: "terraform-agent"
             labelString: "terraform"
             remoteFs: "/home"
             instanceCapStr: 3
             dockerTemplateBase:
-              image: "logiquenoire/jenkins-agent-cineagile:terraform-1.1"
+              image: "logiquenoire/jenkins-agent-cineagile:terraform-awscli-checkov-1.0"
               tty: true
             retentionStrategy:
               idleMinutes: 5
@@ -68,21 +68,6 @@ jenkins:
             connector:
               attach:
                 user: "root"
-
-          # === Agente AWS CLI ===
-          - name: "aws-agent"
-            labelString: "aws"
-            remoteFs: "/home/aws"
-            instanceCapStr: 3
-            dockerTemplateBase:
-              image: "amazon/aws-cli:2.32.6"
-              tty: true
-            retentionStrategy:
-              idleMinutes: 5
-            connector:
-              attach:
-                user: "jenkins"
-
           
 credentials:
   system:
