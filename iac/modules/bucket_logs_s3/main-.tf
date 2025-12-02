@@ -38,6 +38,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     id     = "delete-old"
     status = "Enabled"
 
+    filter {
+      prefix = "logs/"
+    }
+
     expiration {
       days = 90
     }
