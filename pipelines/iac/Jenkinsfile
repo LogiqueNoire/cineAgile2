@@ -5,6 +5,10 @@ pipeline {
         skipDefaultCheckout()
     }
 
+    environment {
+        TF_TOKEN_app_terraform_io = credentials('TFC_TOKEN')
+    }
+
     stages {
         stage('Checkout') {
             agent { label 'docker' }
