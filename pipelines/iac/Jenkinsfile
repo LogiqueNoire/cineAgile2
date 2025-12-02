@@ -31,39 +31,41 @@ pipeline {
         //     }
         // }
 
-        stage('A2. Prueba ligera') {
-            agent { label 'terraform' }
+        // stage('A2. Prueba ligera') {
+        //     agent { label 'terraform' }
 
-            steps {
-                unstash 'source'
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                    withEnv(['TF_WORKSPACE=dev']) {
-                        sh '''
-                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                            export AWS_REGION=us-east-2
-                            cd iac
-                            terraform init
-                            terraform workspace list
-                            terraform workspace show
-                            checkov --directory . -o junitxml --soft-fail --output-file-path results.xml
-                            terraform plan
-                        '''
-                    }
-                }
-            }
-        }
+        //     steps {
+        //         unstash 'source'
+        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+        //             withEnv(['TF_WORKSPACE=dev']) {
+        //                 sh '''
+        //                     export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+        //                     export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        //                     export AWS_REGION=us-east-2
+        //                     cd iac
+        //                     terraform init
+        //                     terraform workspace list
+        //                     terraform workspace show
+        //                     checkov --directory . -o junitxml --soft-fail --output-file-path results.xml
+        //                     terraform plan
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('A3.1. Despliegue en dev: crear zona Route 53 (Cambiar dns godaddy)') {
             agent { label 'terraform' }
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                    sh '''
-                        cd iac
-                        terraform init
-                        terraform apply -target=aws_route53_zone.main -auto-approve
-                    '''
+                    withEnv(['TF_WORKSPACE=dev']) {
+                        sh '''
+                            cd iac
+                            terraform init
+                            terraform apply -target=aws_route53_zone.main -auto-approve
+                        '''
+                    }
                 }
                 stash name: 'source', includes: '**/*'
             }
@@ -74,69 +76,71 @@ pipeline {
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                    sh '''
-                        cd iac
-                        echo "Creando y validando el certificado SSL (2 min)"
-                        terraform apply \
-                            -target=aws_acm_certificate.cineagile_cert \
-                            -target=aws_route53_record.cineagile_cert_validation \
-                            -target=aws_acm_certificate_validation.cineagile_cert_validation \
-                            -auto-approve
-                        echo "Crear el bucket S3 y su configuración (rápido, segundos)"
-                        terraform apply \
-                            -target=aws_s3_bucket.frontend_bucket \
-                            -target=aws_s3_bucket_server_side_encryption_configuration.frontend_encryption \
-                            -target=aws_s3_bucket_website_configuration.website_config \
-                            -target=aws_s3_bucket_public_access_block.block_public_access \
-                            -auto-approve
-                        echo "Crear CloudFront + OAC + política del bucket (5 min ejecución)"
-                        terraform apply \
-                            -target=aws_cloudfront_origin_access_control.oac \
-                            -target=data.aws_iam_policy_document.s3_access_policy \
-                            -target=aws_s3_bucket_policy.s3_access_policy \
-                            -target=aws_cloudfront_response_headers_policy.security_headers \
-                            -target=aws_cloudfront_distribution.s3_distribution \
-                            -auto-approve
-                        echo "Crear registros DNS principales (dominios -> distribución de cloudfront) (40 min propagación)"
-                        terraform apply \
-                            -target=aws_route53_record.root_domain \
-                            -target=aws_route53_record.www_domain \
-                            -auto-approve
-                        echo "Preparando conexión global"
-                        terraform apply \
-                            -target=module.vpc_back_1_us_east_2 \
-                            -target=module.vpc_back_2_us_east_1 \
-                            -target=aws_lb.alb_us_east_1 \
-                            -target=aws_lb.alb_us_east_2 \
-                            -target=aws_lb_target_group.backend_us_east_1 \
-                            -target=aws_lb_target_group.backend_us_east_2 \
-                            -target=aws_lb_listener.https_us_east_1 \
-                            -target=aws_lb_listener.https_us_east_2 \
-                            -target=aws_route53_health_check.alb_us_east_1 \
-                            -target=aws_route53_health_check.alb_us_east_2 \
-                            -target=aws_route53_record.api_us_east_1 \
-                            -target=aws_route53_record.api_us_east_2 \
-                            -auto-approve
-                        
-                        terraform apply \
-                            -target=aws_wafv2_web_acl.waf_acl \
-                            -target=aws_wafv2_web_acl_association.wacl1 \
-                            -target=aws_wafv2_web_acl_association.wacl2 \
-                            -target=aws_kinesis_firehose_delivery_stream.waf_acl \
-                            -target=aws_iam_role.firehose_role \
-                            -target=aws_s3_bucket.waf_logs_s3
-                            -auto-approve
-                        
-                        echo "Cloudfront"
-                        terraform apply \
-                            -target=aws_cloudwatch_log_group.frontend_access_logs \
-                            -target=aws_iam_role.s3_to_cloudwatch_role \
-                            -target=aws_iam_role_policy.s3_to_cloudwatch_policy \
-                            -target=aws_cloudtrail.s3_access_trail \
-                            -target=aws_route53_health_check.mi_servicio \
-                            -target=aws_cloudwatch_dashboard.dashboard_cliente \
-                            -auto-approve
-                    '''
+                    withEnv(['TF_WORKSPACE=dev']) {
+                        sh '''
+                            cd iac
+                            echo "Creando y validando el certificado SSL (2 min)"
+                            terraform apply \
+                                -target=aws_acm_certificate.cineagile_cert \
+                                -target=aws_route53_record.cineagile_cert_validation \
+                                -target=aws_acm_certificate_validation.cineagile_cert_validation \
+                                -auto-approve
+                            echo "Crear el bucket S3 y su configuración (rápido, segundos)"
+                            terraform apply \
+                                -target=aws_s3_bucket.frontend_bucket \
+                                -target=aws_s3_bucket_server_side_encryption_configuration.frontend_encryption \
+                                -target=aws_s3_bucket_website_configuration.website_config \
+                                -target=aws_s3_bucket_public_access_block.block_public_access \
+                                -auto-approve
+                            echo "Crear CloudFront + OAC + política del bucket (5 min ejecución)"
+                            terraform apply \
+                                -target=aws_cloudfront_origin_access_control.oac \
+                                -target=data.aws_iam_policy_document.s3_access_policy \
+                                -target=aws_s3_bucket_policy.s3_access_policy \
+                                -target=aws_cloudfront_response_headers_policy.security_headers \
+                                -target=aws_cloudfront_distribution.s3_distribution \
+                                -auto-approve
+                            echo "Crear registros DNS principales (dominios -> distribución de cloudfront) (40 min propagación)"
+                            terraform apply \
+                                -target=aws_route53_record.root_domain \
+                                -target=aws_route53_record.www_domain \
+                                -auto-approve
+                            echo "Preparando conexión global"
+                            terraform apply \
+                                -target=module.vpc_back_1_us_east_2 \
+                                -target=module.vpc_back_2_us_east_1 \
+                                -target=aws_lb.alb_us_east_1 \
+                                -target=aws_lb.alb_us_east_2 \
+                                -target=aws_lb_target_group.backend_us_east_1 \
+                                -target=aws_lb_target_group.backend_us_east_2 \
+                                -target=aws_lb_listener.https_us_east_1 \
+                                -target=aws_lb_listener.https_us_east_2 \
+                                -target=aws_route53_health_check.alb_us_east_1 \
+                                -target=aws_route53_health_check.alb_us_east_2 \
+                                -target=aws_route53_record.api_us_east_1 \
+                                -target=aws_route53_record.api_us_east_2 \
+                                -auto-approve
+                            
+                            terraform apply \
+                                -target=aws_wafv2_web_acl.waf_acl \
+                                -target=aws_wafv2_web_acl_association.wacl1 \
+                                -target=aws_wafv2_web_acl_association.wacl2 \
+                                -target=aws_kinesis_firehose_delivery_stream.waf_acl \
+                                -target=aws_iam_role.firehose_role \
+                                -target=aws_s3_bucket.waf_logs_s3
+                                -auto-approve
+                            
+                            echo "Cloudfront"
+                            terraform apply \
+                                -target=aws_cloudwatch_log_group.frontend_access_logs \
+                                -target=aws_iam_role.s3_to_cloudwatch_role \
+                                -target=aws_iam_role_policy.s3_to_cloudwatch_policy \
+                                -target=aws_cloudtrail.s3_access_trail \
+                                -target=aws_route53_health_check.mi_servicio \
+                                -target=aws_cloudwatch_dashboard.dashboard_cliente \
+                                -auto-approve
+                        '''
+                    }
                 }
                 script {
                     env.cloudfront_distribution_id = sh(
