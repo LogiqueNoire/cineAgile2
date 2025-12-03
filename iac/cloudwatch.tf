@@ -6,7 +6,8 @@ resource "aws_cloudwatch_log_group" "route53_logs" {
 }
 
 resource "aws_kms_key" "cloudwatch_key" {
-  description = "KMS key for CloudWatch Logs"
+  description         = "KMS key for CloudWatch Logs"
+  enable_key_rotation = true #CKV_AWS-7 
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -140,7 +141,8 @@ resource "aws_cloudtrail" "s3_access_trail" {
   include_global_service_events = false
   is_multi_region_trail         = true #CKV_AWS-67 (Ensure CloudTrail is enabled in all Regions)
   enable_logging                = true
-  enable_log_file_validation    = true #CKV_AWS-36 (Ensure CloudTrail log file validation is enabled)
+  enable_log_file_validation    = true                               #CKV_AWS-36 (Ensure CloudTrail log file validation is enabled)
+  kms_key_id                    = aws_kms_key.cloudtrail_kms_key.arn #CKV_AWS-35 AWS CloudTrail logs are not encrypted using Customer Master Keys (CMKs)
 
   event_selector {
     read_write_type           = "All"
@@ -151,6 +153,32 @@ resource "aws_cloudtrail" "s3_access_trail" {
       values = ["arn:aws:s3:::cineagile-front/"]
     }
   }
+}
+
+resource "aws_kms_key" "cloudtrail_kms_key" {
+  description             = "Kms para el clpoudtrail"
+  enable_key_rotation     = true
+  deletion_window_in_days = 30
+}
+
+resource "aws_kms_key_policy" "cloud_kms_keypolicy" {
+  key_id = aws_kms_key.cloudtrail_kms_key.id
+  policy = jsonencode({
+    Id = "example"
+    Statement = [
+      {
+        Action = "kms:*"
+        Effect = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+
+        Resource = "*"
+        Sid      = "Enable IAM User Permissions"
+      },
+    ]
+    Version = "2012-10-17"
+  })
 }
 
 resource "aws_route53_health_check" "mi_servicio" {
