@@ -157,9 +157,14 @@ resource "aws_s3_bucket_versioning" "versioning_block" {
 }
 
 
+resource "aws_kms_key" "sns_key" {
+  description         = "KMS para SNS"
+  enable_key_rotation = true
+}
 #S3 buckets do not have event notifications enabled , 
 resource "aws_sns_topic" "log_bucket_notifications" {
-  name = "sns-logs-notifications"
+  name              = "sns-logs-notifications"
+  kms_master_key_id = aws_kms_key.sns_key.arn #CKV_AWS_26: Ensure all data stored in the SNS topic is encrypted
 }
 
 resource "aws_s3_bucket_notification" "log_bucket_notification" {
@@ -266,8 +271,8 @@ resource "aws_s3_bucket_policy" "s3_access_policy" {
 }
 
 resource "aws_kms_key" "s3_key" {
-  description = "KMS key for S3 bucket encryption"
-
+  description         = "KMS key for S3 bucket encryption"
+  enable_key_rotation = true #CKV_AWS-7 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -302,6 +307,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
+  web_acl_id          = aws_wafv2_web_acl.cloudfront_waf.arn #CKV_AWS-68 
 
   depends_on = [aws_acm_certificate_validation.cineagile_cert_validation]
 
