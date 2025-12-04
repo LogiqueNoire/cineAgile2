@@ -190,6 +190,7 @@ resource "aws_cloudwatch_dashboard" "dashboard_cliente" {
           period = 30,
           stat   = "Minimum",
           title  = "Servicio Activo (Health Check)"
+          region = var.region
         }
       }
     ]
