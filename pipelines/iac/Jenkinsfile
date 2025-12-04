@@ -380,7 +380,7 @@ pipeline {
             }
         }
 
-        stage('A3.1. Crear zona Route53 y actualizar DNS en GoDaddy') {
+        stage('A9.1. Crear zona Route53 y actualizar DNS en GoDaddy') {
             agent { label 'terraform-awscli-checkov' }
 
             steps {
