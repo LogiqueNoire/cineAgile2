@@ -11,6 +11,18 @@ resource "aws_kms_key" "cloudwatch_key" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+
+      # Obligatorio
+      {
+        Sid       = "EnableIAMUserPermissions"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::797606048152:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+
       {
         Sid    = "AllowCloudWatchLogsUse"
         Effect = "Allow"
