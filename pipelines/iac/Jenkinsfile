@@ -73,8 +73,8 @@ pipeline {
 
         stage("Actualizar Nameservers GoDaddy v2") {
             agent { label 'terraform-awscli-checkov' }
-
             steps {
+                unstash 'source'
                 script {
                     def json = sh(
                         script: "terraform output -json route53_name_servers",
