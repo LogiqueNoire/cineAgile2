@@ -80,33 +80,37 @@ pipeline {
             agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
-                script {
-                    def json = sh(
-                        script: "cd iac && terraform output -json route53_name_servers",
-                        returnStdout: true
-                    ).trim()
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                    withEnv(['TF_WORKSPACE=dev']) {
+                        script {
+                            def json = sh(
+                                script: "cd iac && terraform output -json route53_name_servers",
+                                returnStdout: true
+                            ).trim()
 
-                    echo "Terraform output JSON: ${json}"
+                            echo "Terraform output JSON: ${json}"
 
-                    def parsed = new groovy.json.JsonSlurper().parseText(json)
-                    def nsList = parsed.value
+                            def parsed = new groovy.json.JsonSlurper().parseText(json)
+                            def nsList = parsed.value
 
-                    echo "NameServers detectados: ${nsList}"
+                            echo "NameServers detectados: ${nsList}"
 
-                    def nsJson = groovy.json.JsonOutput.toJson([
-                        nameServers: nsList
-                    ])
+                            def nsJson = groovy.json.JsonOutput.toJson([
+                                nameServers: nsList
+                            ])
 
-                    echo "Body enviado a GoDaddy:"
-                    echo nsJson
+                            echo "Body enviado a GoDaddy:"
+                            echo nsJson
 
-                    sh """
-                        curl -X PUT "https://api.godaddy.com/v2/customers/$CUSTOMER_ID_GODADDY/domains/$DOMAIN/nameServers" \
-                        -H "Authorization: sso-key $API_KEY_GODADDY:$API_SECRET_GODADDY" \
-                        -H "Content-Type: application/json" \
-                        -H "X-Request-Id: \$(uuidgen)" \
-                        -d '${nsJson}'
-                    """
+                            sh """
+                                curl -X PUT "https://api.godaddy.com/v2/customers/$CUSTOMER_ID_GODADDY/domains/$DOMAIN/nameServers" \
+                                -H "Authorization: sso-key $API_KEY_GODADDY:$API_SECRET_GODADDY" \
+                                -H "Content-Type: application/json" \
+                                -H "X-Request-Id: \$(uuidgen)" \
+                                -d '${nsJson}'
+                            """
+                        }
+                    }
                 }
             }
         }
@@ -408,6 +412,7 @@ pipeline {
         //     agent { label 'ansible' }
         //     steps {
         //         sh '''
+        //              cd config
         //         ansible-playbook \
         //             -i ansible/inventory/dev \
         //             ansible/playbooks/deploy_app.yml
