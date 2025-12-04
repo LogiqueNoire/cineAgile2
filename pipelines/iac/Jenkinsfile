@@ -79,18 +79,14 @@ pipeline {
                             cd iac
                             terraform init
                             terraform apply -target=aws_route53_zone.main -auto-approve
-                            terraform apply -refresh-only -auto-approve
 
-                            echo "==== Output Terraform ===="
                             terraform output -json route53_name_servers > ns.json
                             cat ns.json
 
-                            # Construir JSON compatible con GoDaddy usando jq
                             echo '{"nameServers":' > payload.json
                             cat ns.json >> payload.json
                             echo '}' >> payload.json
 
-                            echo "==== JSON final enviado a GoDaddy ===="
                             cat payload.json
 
                             curl -X PUT "https://api.godaddy.com/v2/customers/$CUSTOMER_ID_GODADDY/domains/$DOMAIN/nameServers" \
