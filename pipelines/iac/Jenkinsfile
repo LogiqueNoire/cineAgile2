@@ -231,28 +231,42 @@ pipeline {
             }
         }
 
-        stage('A6.1. Despliegue en qa: crear zona Route 53 (Cambiar dns godaddy)') {
+        stage('A6.1. Crear zona Route53 y actualizar DNS en GoDaddy') {
             agent { label 'terraform-awscli-checkov' }
+
             steps {
                 unstash 'source'
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                    sh '''
-                        cd iac
-                        terraform init
-                        terraform apply -target=aws_route53_zone.main -auto-approve -var-file=qa.tfvars
-                    '''
-                }
-                stash name: 'source', includes: '**/*'
-            }
-            post {
-                failure {
-                    echo "El apply falló. Ejecutando terraform destroy…"
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                        dir('iac') {
-                            sh '''
-                                terraform destroy -auto-approve -var-file=qa.tfvars
-                            '''
-                        }
+
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials'],
+                    string(credentialsId: 'API_KEY_GODADDY', variable: 'API_KEY_GODADDY'),
+                    string(credentialsId: 'API_SECRET_GODADDY', variable: 'API_SECRET_GODADDY'),
+                    string(credentialsId: 'CUSTOMER_ID_GODADDY', variable: 'CUSTOMER_ID_GODADDY'),
+                    string(credentialsId: 'DOMAIN', variable: 'DOMAIN')
+                ]) {
+
+                    withEnv(['TF_WORKSPACE=dev']) {
+
+                        sh '''
+                            cd iac
+                            terraform init
+                            terraform apply -target=aws_route53_zone.main -auto-approve
+
+                            terraform output -json route53_name_servers > ns.json
+                            cat ns.json
+
+                            echo '{"nameServers":' > payload.json
+                            cat ns.json >> payload.json
+                            echo '}' >> payload.json
+
+                            cat payload.json
+
+                            curl -X PUT "https://api.godaddy.com/v2/customers/$CUSTOMER_ID_GODADDY/domains/$DOMAIN/nameServers" \
+                                -H "Authorization: sso-key '$API_KEY_GODADDY':'$API_SECRET_GODADDY'" \
+                                -H "Content-Type: application/json" \
+                                -H "X-Request-Id: $(uuidgen)" \
+                                -d @payload.json
+                        '''
                     }
                 }
             }
@@ -366,28 +380,42 @@ pipeline {
             }
         }
 
-        stage('A9.1. Despliegue en prod: crear zona Route 53 (Cambiar dns en godaddy)') {
+        stage('A3.1. Crear zona Route53 y actualizar DNS en GoDaddy') {
             agent { label 'terraform-awscli-checkov' }
+
             steps {
                 unstash 'source'
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                    sh '''
-                        cd iac
-                        terraform init
-                        terraform apply -target=aws_route53_zone.main -auto-approve -var-file=prod.tfvars
-                    '''
-                }
-                stash name: 'source', includes: '**/*'
-            }
-            post {
-                failure {
-                    echo "El apply falló. Ejecutando terraform destroy…"
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-                        dir('iac') {
-                            sh '''
-                                terraform destroy -auto-approve -var-file=qa.tfvars
-                            '''
-                        }
+
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials'],
+                    string(credentialsId: 'API_KEY_GODADDY', variable: 'API_KEY_GODADDY'),
+                    string(credentialsId: 'API_SECRET_GODADDY', variable: 'API_SECRET_GODADDY'),
+                    string(credentialsId: 'CUSTOMER_ID_GODADDY', variable: 'CUSTOMER_ID_GODADDY'),
+                    string(credentialsId: 'DOMAIN', variable: 'DOMAIN')
+                ]) {
+
+                    withEnv(['TF_WORKSPACE=dev']) {
+
+                        sh '''
+                            cd iac
+                            terraform init
+                            terraform apply -target=aws_route53_zone.main -auto-approve
+
+                            terraform output -json route53_name_servers > ns.json
+                            cat ns.json
+
+                            echo '{"nameServers":' > payload.json
+                            cat ns.json >> payload.json
+                            echo '}' >> payload.json
+
+                            cat payload.json
+
+                            curl -X PUT "https://api.godaddy.com/v2/customers/$CUSTOMER_ID_GODADDY/domains/$DOMAIN/nameServers" \
+                                -H "Authorization: sso-key $API_KEY_GODADDY:$API_SECRET_GODADDY" \
+                                -H "Content-Type: application/json" \
+                                -H "X-Request-Id: $(uuidgen)" \
+                                -d @payload.json
+                        '''
                     }
                 }
             }

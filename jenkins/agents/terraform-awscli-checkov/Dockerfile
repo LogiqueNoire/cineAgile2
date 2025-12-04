@@ -1,7 +1,7 @@
 FROM jenkins/inbound-agent:alpine3.22-jdk21
 USER root
 
-RUN apk add --no-cache bash curl unzip git python3 py3-pip
+RUN apk add --no-cache bash curl unzip git python3 py3-pip util-linux
 
 RUN pip install --break-system-packages --no-cache-dir awscli
 
