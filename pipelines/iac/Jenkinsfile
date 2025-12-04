@@ -7,6 +7,11 @@ pipeline {
 
     environment {
         TF_TOKEN_app_terraform_io = credentials('TFC_TOKEN')
+
+        API_KEY_GODADDY       = credentials('API_KEY_GODADDY')
+        API_SECRET_GODADDY    = credentials('API_SECRET_GODADDY')
+        CUSTOMER_ID_GODADDY   = credentials('CUSTOMER_ID_GODADDY')
+        DOMAIN                = credentials('DOMAIN')
     }
 
     stages {
@@ -77,7 +82,7 @@ pipeline {
                 unstash 'source'
                 script {
                     def json = sh(
-                        script: "terraform output -json route53_name_servers",
+                        script: "cd iac && terraform output -json route53_name_servers",
                         returnStdout: true
                     ).trim()
 
