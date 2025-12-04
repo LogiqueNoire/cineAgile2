@@ -19,7 +19,7 @@ pipeline {
         }
 
         // stage('A1. Linting y validación') {
-        //     agent { label 'terraform' }
+        //     agent { label 'terraform-awscli-checkov' }
         //     steps {
         //         unstash 'source'
         //         sh '''
@@ -32,7 +32,7 @@ pipeline {
         // }
 
         // stage('A2. Prueba ligera') {
-        //     agent { label 'terraform' }
+        //     agent { label 'terraform-awscli-checkov' }
 
         //     steps {
         //         unstash 'source'
@@ -55,7 +55,7 @@ pipeline {
         // }
 
         stage('A3.1. Despliegue en dev: crear zona Route 53 (Cambiar dns godaddy)') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
@@ -71,8 +71,43 @@ pipeline {
             }
         }
 
+        stage("Actualizar Nameservers GoDaddy v2") {
+            agent { label 'terraform-awscli-checkov' }
+
+            steps {
+                script {
+                    def json = sh(
+                        script: "terraform output -json route53_name_servers",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Terraform output JSON: ${json}"
+
+                    def parsed = new groovy.json.JsonSlurper().parseText(json)
+                    def nsList = parsed.value
+
+                    echo "NameServers detectados: ${nsList}"
+
+                    def nsJson = groovy.json.JsonOutput.toJson([
+                        nameServers: nsList
+                    ])
+
+                    echo "Body enviado a GoDaddy:"
+                    echo nsJson
+
+                    sh """
+                        curl -X PUT "https://api.godaddy.com/v2/customers/$CUSTOMER_ID_GODADDY/domains/$DOMAIN/nameServers" \
+                        -H "Authorization: sso-key $API_KEY_GODADDY:$API_SECRET_GODADDY" \
+                        -H "Content-Type: application/json" \
+                        -H "X-Request-Id: \$(uuidgen)" \
+                        -d '${nsJson}'
+                    """
+                }
+            }
+        }
+
         stage('A3.2. Terminar el despliegue en dev') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
@@ -165,7 +200,7 @@ pipeline {
         }
 
         stage('Invalidate Cache (CloudFront)') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
                     echo "Invalidando caché de CloudFront ID: ${env.cloudfront_distribution_id}"
@@ -178,7 +213,7 @@ pipeline {
         }
 
         stage('A4. Prueba de integración de 1 sol') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 sh '''
@@ -190,7 +225,7 @@ pipeline {
         }
 
         stage('A5. Destruir dev') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
@@ -203,7 +238,7 @@ pipeline {
         }
 
         stage('A6.1. Despliegue en qa: crear zona Route 53 (Cambiar dns godaddy)') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
@@ -230,7 +265,7 @@ pipeline {
         }
 
         stage('A6.2. Terminar el despliegue en qa') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
@@ -306,7 +341,7 @@ pipeline {
         }
 
         stage('A7. Destruir qa') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 unstash 'tfstate'
@@ -338,7 +373,7 @@ pipeline {
         }
 
         stage('A9.1. Despliegue en prod: crear zona Route 53 (Cambiar dns en godaddy)') {
-            agent { label 'terraform' }
+            agent { label 'terraform-awscli-checkov' }
             steps {
                 unstash 'source'
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){

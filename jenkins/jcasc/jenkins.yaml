@@ -42,8 +42,8 @@ jenkins:
                 user: "jenkins"
           
           # === Agente Terraform AWSCLI Checkov ===
-          - name: "terraform-agent"
-            labelString: "terraform"
+          - name: "terraform-awscli-checkov-agent"
+            labelString: "terraform-awscli-checkov"
             remoteFs: "/home"
             instanceCapStr: 3
             dockerTemplateBase:
@@ -82,9 +82,25 @@ credentials:
             scope: GLOBAL
             id: "TFC_TOKEN"
             secret: "${TFC_TOKEN}"
+        - string:
+            scope: GLOBAL
+            id: "API_KEY_GODADDY"
+            secret: "${API_KEY_GODADDY}"
+        - string:
+            scope: GLOBAL
+            id: "API_SECRET_GODADDY"
+            secret: "${API_SECRET_GODADDY}"
+        - string:
+            scope: GLOBAL
+            id: "CUSTOMER_ID_GODADDY"
+            secret: "${CUSTOMER_ID_GODADDY}"
+        - string:
+            scope: GLOBAL
+            id: "DOMAIN"
+            secret: "${DOMAIN}"
 jobs:
   - script: >
-      pipelineJob('prueba') {
+      pipelineJob('pruebas') {
         definition {
           cpsScm {
             scm {
