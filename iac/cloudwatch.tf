@@ -11,23 +11,11 @@ resource "aws_kms_key" "cloudwatch_key" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-
-      # Obligatorio
-      {
-        Sid       = "EnableIAMUserPermissions"
-        Effect    = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::797606048152:root"
-        }
-        Action   = "kms:*"
-        Resource = "*"
-      },
-
       {
         Sid    = "AllowCloudWatchLogsUse"
         Effect = "Allow"
         Principal = {
-          Service = "logs.${var.region}.amazonaws.com"
+          Service = "logs.amazonaws.com"
         }
         Action = [
           "kms:Encrypt",
@@ -37,13 +25,17 @@ resource "aws_kms_key" "cloudwatch_key" {
           "kms:DescribeKey"
         ]
         Resource = "*"
+        Condition = {
+          StringEquals = {
+            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:*"
+          }
+        }
       },
-
       {
         Sid    = "AllowRootAccountFullAccess"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::797606048152:root"
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         }
         Action   = "kms:*"
         Resource = "*"
@@ -51,6 +43,7 @@ resource "aws_kms_key" "cloudwatch_key" {
     ]
   })
 }
+
 
 
 
@@ -169,6 +162,7 @@ resource "aws_route53_health_check" "mi_servicio" {
   fqdn              = var.sub_dominio_api # api.cineagile.com
   type              = "HTTPS"
   resource_path     = "/api/venta/v1/health"
+  port              = 443
   request_interval  = 30 # cada 30 segundos
   failure_threshold = 3  # si falla 3 veces, se considera down
 }
@@ -196,3 +190,5 @@ resource "aws_cloudwatch_dashboard" "dashboard_cliente" {
     ]
   })
 }
+
+data "aws_caller_identity" "current" {}
