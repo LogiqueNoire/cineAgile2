@@ -23,41 +23,41 @@ pipeline {
             }
         }
 
-        // stage('A1. Linting y validación') {
-        //     agent { label 'terraform-awscli-checkov' }
-        //     steps {
-        //         unstash 'source'
-        //         sh '''
-        //             cd iac
-        //             terraform fmt -check
-        //             terraform init -backend=false
-        //             terraform validate
-        //         '''
-        //     }
-        // }
+        stage('A1. Linting y validación') {
+            agent { label 'terraform-awscli-checkov' }
+            steps {
+                unstash 'source'
+                sh '''
+                    cd iac
+                    terraform fmt -check
+                    terraform init -backend=false
+                    terraform validate
+                '''
+            }
+        }
 
-        // stage('A2. Prueba ligera') {
-        //     agent { label 'terraform-awscli-checkov' }
+        stage('A2. Prueba ligera') {
+            agent { label 'terraform-awscli-checkov' }
 
-        //     steps {
-        //         unstash 'source'
-        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
-        //             withEnv(['TF_WORKSPACE=dev']) {
-        //                 sh '''
-        //                     export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-        //                     export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-        //                     export AWS_REGION=us-east-2
-        //                     cd iac
-        //                     terraform init
-        //                     terraform workspace list
-        //                     terraform workspace show
-        //                     checkov --directory . -o junitxml --soft-fail --output-file-path results.xml
-        //                     terraform plan
-        //                 '''
-        //             }
-        //         }
-        //     }
-        // }
+            steps {
+                unstash 'source'
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials']]){
+                    withEnv(['TF_WORKSPACE=dev']) {
+                        sh '''
+                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                            export AWS_REGION=us-east-2
+                            cd iac
+                            terraform init
+                            terraform workspace list
+                            terraform workspace show
+                            checkov --directory . -o junitxml --soft-fail --output-file-path results.xml
+                            terraform plan
+                        '''
+                    }
+                }
+            }
+        }
 
         stage('A3.1. Crear zona Route53 y actualizar DNS en GoDaddy') {
             agent { label 'terraform-awscli-checkov' }
@@ -421,17 +421,17 @@ pipeline {
             }
         }
 
-        // stage('Run Playbook Dev') {
-        //     agent { label 'ansible' }
-        //     steps {
-        //         sh '''
-        //              cd config
-        //         ansible-playbook \
-        //             -i ansible/inventory/dev \
-        //             ansible/playbooks/deploy_app.yml
-        //         '''
-        //     }
-        // }
+        stage('Run Playbook Dev') {
+            agent { label 'ansible' }
+            steps {
+                sh '''
+                     cd config
+                ansible-playbook \
+                    -i ansible/inventory/dev \
+                    ansible/playbooks/deploy_app.yml
+                '''
+            }
+        }
 
     }
 
